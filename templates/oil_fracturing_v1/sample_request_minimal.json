@@ -1,0 +1,5 @@
+{
+  "template": "oil_fracturing_v1",
+  "well_id": "W-MINIMAL",
+  "_comment": "极简示例：完全不提供任何取值 → 全部节点 UNKNOWN（P/C 黄底、无回写），演示缺失兜底与空输入健壮性"
+}

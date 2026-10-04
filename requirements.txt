@@ -1,0 +1,5 @@
+# 运行依赖（Phase 0）
+Flask>=3.0,<4.0
+defusedxml>=0.7,<0.8   # 安全 XML 解析，禁 DTD/外部实体（需求 V30）
+PyYAML>=6.0,<7.0       # 加载 5 份模板配置
+pydantic>=2.7,<3.0     # 输入 Schema / 类型 / 单位 / 范围校验

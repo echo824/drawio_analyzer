@@ -2,7 +2,11 @@
 # 权威依据：需求补充（基于真实模板）.md §3
 # 说明（A 方案）：调用方按节点 id 传值(node_values)，本文件定义各量的语义/单位/范围，
 #   供 rules.yaml 引用与 Validator 校验；量本身归入所属节点，不在此平铺取值。
-# 标记约定：TODO 表示需业务确认的默认值/单位/范围。
+# 标记约定：无服务内计算——所有量(含派生/聚合)均由外部传入，本文件仅定义语义/单位/范围供校验。
+#   【待确认项处置(见 待确认项.md)】
+#   - B 阈值：均保留占位默认值，与代码解耦——求值只引用符号名，后期改数值只改本文件。
+#   - D 派生量/数据来源：converted_thickness、oil_diff 及 avg_*/block_avg_* 等一律外部直传，
+#     本服务不做任何公式派生或统计聚合（对齐 §3 数据供给原则）。
 
 meta:
   template: oil_fracturing_v1
@@ -18,15 +22,14 @@ quantities:
     kind: measurement
     type: integer
     unit: "层"
-    range: [0, 100]          # TODO: 合理范围待业务确认
+    range: [0, 100]          # B9：占位合理范围，待业务核实后只改本行（非阻断项）
     description: 可压储层层数
   converted_thickness:
-    kind: derived
+    kind: measurement
     type: number
     unit: "m"
-    description: 折算厚度 = (砂岩厚度 - 有效厚度)/3 + 有效厚度
-    derived_from: [sandstone_thickness, effective_thickness]   # TODO: 确认砂岩/有效厚度是否外部直传
-    formula: "(sandstone_thickness - effective_thickness) / 3 + effective_thickness"
+    description: 折算厚度（D1：由外部直传，服务不按公式计算）
+    # 语义参考（上游可选算法，本服务不执行）：(砂岩厚度 - 有效厚度)/3 + 有效厚度
   total_connected_thickness:
     kind: measurement
     type: number
@@ -39,12 +42,11 @@ quantities:
     range: [0, 100]
     description: 本井含水率
   oil_diff:
-    kind: derived
+    kind: measurement
     type: number
     unit: "t"
-    description: 本井初期与目前日产油之差
-    derived_from: [initial_oil_daily, current_oil_daily]
-    formula: "initial_oil_daily - current_oil_daily"
+    description: 本井初期与目前日产油之差（D2：差值由外部直传，服务不做减法）
+    # 语义参考（上游可选算法，本服务不执行）：initial_oil_daily - current_oil_daily
   initial_oil_daily:
     kind: measurement
     type: number
@@ -101,7 +103,7 @@ quantities:
   casing_damage:
     kind: measurement
     type: boolean
-    description: 油层深度以上套管是否损坏(不严重=FALSE/严重=TRUE)   # TODO: 确认布尔方向语义
+    description: 油层深度以上套管是否损坏（不严重=FALSE/严重=TRUE；布尔方向见 rules.yaml P016，值由外部传入）
 
   # —— 区域/井网聚合基准：一律外部传入(§3.3 数据供给原则)，服务不统计 ——
   avg_water_cut:
@@ -109,7 +111,7 @@ quantities:
     type: number
     unit: "%"
     provided_in: basis
-    description: 全区平均含水率 或 井网平均含水率(外部算好传入)     # TODO: 确认取全区还是井网
+    description: 全区或井网平均含水率（D3：取全区/井网由外部决定后传入单值，服务不感知口径）
   avg_liquid:
     kind: aggregate
     type: number
@@ -155,22 +157,23 @@ quantities:
 
 # ─────────────────────────────────────────────────────────────
 # 2) thresholds —— 常数阈值（描述内原写死数一律参数化）
-#    Y 不在这里：Y 是写死常数，见 rules.yaml P005 表达式
-# ─────────────────────────────────────────────────────────────
+#    【B 处置】以下均为占位默认值，与代码解耦；真实值确定后只改本表，无需改逻辑。
+#    （P005 的 Y 常数已外提为 x_p005_y，不再写死在 rules.yaml）
 thresholds:
-  x1:  { value: 5,   unit: "m" }    # TODO: 全井连通厚度阈值
+  x1:  { value: 5,   unit: "m" }    # B1 全井连通厚度阈值（占位 5m，待核实）
   x3:  { value: 3,   unit: "层" }   # 可压储层层数阈值
   x4:  { value: 5,   unit: "m" }    # 折算厚度阈值
-  x6:  { value: 10,  unit: "t" }    # TODO: 日产液阈值
-  x7:  { value: 0.5, unit: "" }     # TODO: 日产液×全区/井网平均 系数
-  x8:  { value: 2,   unit: "t/d.m" }# TODO: 产液强度阈值
-  x9:  { value: 0.8, unit: "" }     # TODO: 产液强度×平均 系数
-  x10: { value: 3,   unit: "t" }    # TODO: 日产油阈值
-  x11: { value: 0.5, unit: "" }     # TODO: 日产油×平均 系数
-  x12: { value: 10,  unit: "t" }    # TODO: 初期-目前日产油之差阈值
+  x6:  { value: 10,  unit: "t" }    # B2 日产液阈值（占位 10，待核实）
+  x7:  { value: 0.5, unit: "" }     # B2 日产液×全区/井网平均 系数（占位 0.5）
+  x8:  { value: 2,   unit: "t/d.m" }# B3 产液强度阈值（占位 2，待核实）
+  x9:  { value: 0.8, unit: "" }     # B3 产液强度×平均 系数（占位 0.8）
+  x10: { value: 3,   unit: "t" }    # B4 日产油阈值（占位 3，待核实）
+  x11: { value: 0.5, unit: "" }     # B4 日产油×平均 系数（占位 0.5）
+  x12: { value: 10,  unit: "t" }    # B5 初期-目前日产油之差阈值（占位 10t）
   x13: { value: 70,  unit: "%" }    # P005 含水率常数阈值(非分段,见需求文档§3.4b)
-  x20: { value: 2,   unit: "口" }   # TODO: 连通开井数阈值
-  x22: { value: 80,  unit: "%" }    # TODO: 配注完成率阈值
+  x20: { value: 2,   unit: "口" }   # B6 连通开井数阈值（占位 2口）
+  x22: { value: 80,  unit: "%" }    # B7 配注完成率阈值（占位 80%）
+  x_p005_y:          { value: 8,   unit: "%" }   # B8 P005 表达式内 Y 常数（从 rules.yaml 写死 8 外提）
   x_well_distance:   { value: 350, unit: "米" }   # 原 P013 文本内 "井距<350米"
   x_neighbor_factor: { value: 1.5, unit: "" }     # 原 P003 文本内 "*1.5"
   casing_min:        { value: 105, unit: "mm" }   # 原 P016 "通径>105mm"

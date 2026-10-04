@@ -1,0 +1,23 @@
+[project]
+name = "oil-fracturing-evaluator"
+version = "0.1.0"
+description = "油井压裂评价微服务：JSON → 三态规则求值 → Draw.io 结果渲染"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --cov=core --cov=config_loader --cov=app --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ANN"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+ignore_missing_imports = true

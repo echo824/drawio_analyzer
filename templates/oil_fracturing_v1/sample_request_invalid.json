@@ -1,0 +1,18 @@
+{
+  "template": "oil_fracturing_v1",
+  "well_id": "W-INVALID",
+  "_comment": "非法输入示例：按位置给出越界/非数值/非法布尔 → 对应操作数被丢弃(记 issues)、节点判 UNKNOWN，服务不抛错。位置:P001=[层数,折算厚度] P016=[通径,套管损坏]",
+  "node_values": {
+    "P001": [150, 12.3],
+    "P002": 30,
+    "P006": "abc",
+    "P016": [110, "maybe"]
+  },
+  "basis": {
+    "avg_water_cut": 55,
+    "avg_liquid": 25,
+    "avg_oil": 6,
+    "block_avg_pressure": 16
+  },
+  "thresholds": { "x3": 3, "x4": 5, "x12": 10 }
+}

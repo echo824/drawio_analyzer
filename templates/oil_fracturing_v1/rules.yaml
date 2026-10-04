@@ -7,7 +7,13 @@
 #                节点内多操作数由 logic 合并(默认 AND)。
 #   - rule/conclusion: aggregate(默认 AND) + children[](引用业务码)。
 #   - 值回写(§4.6)按 operands[].name 定位到各比较运算符前插入 node_values[节点id].name。
-#   - TODO = 聚合算子/操作数需业务逐项确认；当前默认按图与常识推断。
+#
+# 【待确认项处置(见 待确认项.md)】
+#   - A 聚合算子：按当前默认值确定；每个 R/C 均显式声明 aggregate，算子只在本文件配置、
+#     求值逻辑不写死，后期改算子仅需改此处 aggregate 字段(与代码解耦)。
+#   - B 阈值/常数：数值与写死常数全部外提到 parameters.yaml，本文件只引用符号名。
+#   - C 判据操作数/基准：比较左值(实测/派生)与右侧基准(区块/井网/全区平均)一律由外部传入
+#     (node_values / basis)；本文件仅声明比较式结构与默认比较方向，不做任何统计计算。
 
 meta:
   template: oil_fracturing_v1
@@ -30,15 +36,17 @@ P002:
     - { name: total_connected_thickness, op: ">", threshold: x1 }
 P003:
   type: predicate
-  # 周围油井产油量 > 区块平均产油量 * 1.5
+  # 周围油井产油量 > 区块平均产油量 * x_neighbor_factor
+  # C1: 比较左值 neighbor_avg_oil_daily 与右侧基准 block_avg_oil_daily 均由外部传入(node_values / basis)
   operands:
-    - { name: neighbor_avg_oil_daily, op: ">", expr: "@block_avg_oil_daily * x_neighbor_factor" }  # TODO: 确认比较左值是否即 neighbor_avg_oil_daily
+    - { name: neighbor_avg_oil_daily, op: ">", expr: "@block_avg_oil_daily * x_neighbor_factor" }
 P005:
   type: predicate
   logic: OR                          # 原文"…或…"
   operands:
     - { name: water_cut, op: "<", threshold: x13 }
-    - { name: water_cut, op: "<", expr: "@avg_water_cut - 8" }   # 8=Y 写死常数(§3.4b); avg 由 basis 传入
+    # B8: Y 常数不再写死，外提为 parameters.yaml 的 x_p005_y(当前=8)；avg_water_cut 由 basis 外部传入
+    - { name: water_cut, op: "<", expr: "@avg_water_cut - x_p005_y" }
 P006:
   type: predicate
   operands:
@@ -60,14 +68,16 @@ P009:
   logic: OR
   operands:
     - { name: oil_daily, op: "<", threshold: x10 }
-    - { name: oil_daily, op: "<", expr: "x11 * @avg_oil" }       # TODO: 是否还含"周围油井产油量平均值"分支
+    - { name: oil_daily, op: "<", expr: "x11 * @avg_oil" }       # C4: 基准 avg_oil 外部传入；未另加"周围油井均值"分支（待如需再加）
 P010:
   type: predicate
+  # C2: 地层压力 > 区块平均地层压力(block_avg_pressure 由 basis 外部传入)
   operands:
-    - { name: formation_pressure, op: ">", expr: "@block_avg_pressure" }   # TODO: 确认方向(> 区块平均)
+    - { name: formation_pressure, op: ">", expr: "@block_avg_pressure" }
 P011:
   type: predicate
   logic: OR
+  # C3: 流压 < 区块平均流压 或 动液面 > 区块平均动液面；基准均由 basis 外部传入
   operands:
     - { name: flow_pressure,      op: "<", expr: "@block_avg_flow_pressure" }
     - { name: inflow_performance, op: ">", expr: "@block_avg_inflow" }
@@ -83,9 +93,10 @@ P015:
 P016:
   type: predicate
   logic: AND
+  # C5: casing_damage 布尔方向保持当前默认：不严重=FALSE→成立；值由 node_values 外部传入
   operands:
     - { name: casing_inner_diameter, op: ">", threshold: casing_min }
-    - { name: casing_damage,         op: "==", value: false }    # TODO: 确认布尔方向(不严重→TRUE)
+    - { name: casing_damage,         op: "==", value: false }
 
 # ═════════════════════════════════════════════════════════════
 # R 节点（中间规则）—— 聚合下游
@@ -100,11 +111,11 @@ R02-1:
   children: [C015, C018]
 R02-2:
   type: rule
-  aggregate: AND                    # TODO: 确认 R02-2 聚合(含 P003 相邻井潜力分支)
+  aggregate: AND                    # A4已确认：保持 AND(C015 且 P003)；如需改 OR 只改本行
   children: [C015, P003]
 R03:
   type: rule
-  aggregate: AND                    # TODO: 确认(产液产油能力低 且 压力不匹配 → 低效)
+  aggregate: AND                    # A2已确认：保持 AND(产液产油能力低 且 压力不匹配 → 低效)
   children: [C019, C020]
 R05:
   type: rule
@@ -116,25 +127,31 @@ R06:
   children: [P001, P002]
 R10:
   type: rule
+  aggregate: AND                    # 单子节点：聚合无意义，显式声明供统一管理
   children: [P005]
 R11:
   type: rule
-  aggregate: OR                     # TODO: 生产能力判别,四判据疑似"或"(任一低即低效),请确认
+  aggregate: OR                     # A1已确认：保持 OR(任一低即低效)；如需改 AND 只改本行
   children: [P006, P007, P008, P009]
 R12-1:
   type: rule
+  aggregate: AND                    # 单子节点
   children: [P010]
 R12-2:
   type: rule
+  aggregate: AND                    # 单子节点
   children: [P011]
 R14:
   type: rule
+  aggregate: AND                    # 单子节点
   children: [P013]
 R15:
   type: rule
+  aggregate: AND                    # 单子节点
   children: [P015]
 R19:
   type: rule
+  aggregate: AND                    # 单子节点
   children: [P016]
 
 # ═════════════════════════════════════════════════════════════
@@ -151,31 +168,39 @@ C011:
   children: [R02-1, R02-2]
 C012:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R03]
 C013:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R19]
 C014:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R05]
 C015:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R06]
 C018:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R10]
 C019:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R11]
 C020:
   type: conclusion
-  aggregate: OR                     # TODO: 压力不匹配: R12-1(地层压力) 或 R12-2(流压/液面) 任一
+  aggregate: OR                     # A3已确认：保持 OR(R12-1 或 R12-2 任一)；如需改 AND 只改本行
   children: [R12-1, R12-2]
 C022:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R14]
 C023:
   type: conclusion
+  aggregate: AND                    # 单子节点
   children: [R15]
 
 # ═════════════════════════════════════════════════════════════

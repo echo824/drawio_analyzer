@@ -1,17 +1,21 @@
 # style.yaml — 结果样式与值回写格式
 # 权威依据：需求补充（基于真实模板）.md §4
 # 决策：结果用 fillColor 表达(绿/红/黄)，类型不再依赖颜色、由业务码前缀识别；原始 .drawio 只读。
+# 【E 处置】以下均为当前确认策略，保留不变：色值 E1、值回写小数位 E2(raw)、
+#   UNKNOWN 占位 E3(默认不显示)、角标开关 E4(默认关闭)；如需变更只改本文件。
 
 meta:
   template: oil_fracturing_v1
   version: 1.0.0
 
 # ── 1) 结果配色（仅替换 fillColor，其余 style 键原样保留）──
+# 注：TRUE/FALSE/UNKNOWN 必须加引号，否则 PyYAML 会把裸 TRUE/FALSE 解析为布尔键。
 result_style:
   channel: fill
-  TRUE:    { fillColor: "#00B050" }     # 成立=绿
-  FALSE:   { fillColor: "#FF0000" }     # 不成立=红
-  UNKNOWN: { fillColor: "#FFFF00" }     # 条件缺失=饱和黄(区别模板淡黄 P)
+  color_kinds: [P, C]                # 仅对 P(输入)/C(结论)施加结果色；R(关系/中间规则)保持模板原样
+  "TRUE":    { fillColor: "#00B050" }     # 成立=绿
+  "FALSE":   { fillColor: "#FF0000" }     # 不成立=红
+  "UNKNOWN": { fillColor: "#FFFF00" }     # 条件缺失=饱和黄(区别模板淡黄 P)
 
 # ── 2) 模板原始底色（仅供"未求值节点透传"参考，运行时不覆盖、不参与类型识别）──
 template_default_fill:
@@ -26,19 +30,19 @@ untouched_nodes:
 
 # ── 4) 可选角标（默认关闭；如需在颜色外再强化结果）──
 badge:
-  enabled: false
+  enabled: false                        # E4：角标默认关闭（当前策略）；如需启用改本行
   anchor_prefix: "__badge__"          # 角标节点 id 前缀，热加载时先清理再重建
-  symbols: { TRUE: "✔", FALSE: "✘", UNKNOWN: "?" }
+  symbols: { "TRUE": "✔", "FALSE": "✘", "UNKNOWN": "?" }
 
 # ── 5) 参数值回写（§4.6）：node_values[节点id] 取裸值，插到各操作数运算符前 ──
 value_annotation:
   enabled: true
   scope: predicate_only                # 仅输入节点(P)回写；R/C 不写
   brackets: ["（", "）"]               # 全角括号
-  number_format: raw                   # 按输入原样，不强制四舍五入   # TODO: 是否统一保留小数位
+  number_format: raw                   # E2：按输入原样，不强制四舍五入（当前策略）
   bool_true:  "是"
   bool_false: "否"
-  unknown: ""                          # 缺失默认不显示(仅黄色底)；如需占位改 "—"
+  unknown: ""                          # E3：缺失默认不显示(仅黄色底)；如需占位改 "—"
   idempotent: true                     # 已有（数字）则跳过，禁止重复追加
   preserve_rich_text: true             # 不破坏 html 实体 / <div>
 

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# 编辑器/系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# 运行期产物（模板缓存/输出结果不入库；原始 .drawio 为只读源，保留）
+*.cache
+out/
+*.generated.html
