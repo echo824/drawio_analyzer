@@ -1,0 +1,190 @@
+# rules.yaml — 油井压裂评价规则与拓扑
+# 权威依据：需求补充（基于真实模板）.md §1/§2/§3.4/§4.6
+# 关键约定：
+#   - 以业务码(P/R/C编号)为唯一主键，绝不使用 mxCell.id 作锚点(随机 id 不稳定)。
+#   - type: predicate(P) | rule(R) | conclusion(C)
+#   - predicate: operands[] 各含 name(对应 parameters.yaml quantities) / op / threshold 或 expr；
+#                节点内多操作数由 logic 合并(默认 AND)。
+#   - rule/conclusion: aggregate(默认 AND) + children[](引用业务码)。
+#   - 值回写(§4.6)按 operands[].name 定位到各比较运算符前插入 node_values[节点id].name。
+#   - TODO = 聚合算子/操作数需业务逐项确认；当前默认按图与常识推断。
+
+meta:
+  template: oil_fracturing_v1
+  rules_version: "2026.04"          # 规则版本(与模板版本独立, §8/§9)
+  default_aggregate: AND            # 需求 §2.3：全部满足才成立
+  evaluation_order: bottom_up       # 自叶节点起沿依赖求值(§2.5)
+
+# ═════════════════════════════════════════════════════════════
+# P 节点（叶子判据）—— 由 node_values + thresholds 直接比较
+# ═════════════════════════════════════════════════════════════
+P001:
+  type: predicate
+  logic: AND                         # 原文"…且…"
+  operands:
+    - { name: reservoir_layers,    op: ">", threshold: x3 }
+    - { name: converted_thickness, op: ">", threshold: x4 }
+P002:
+  type: predicate
+  operands:
+    - { name: total_connected_thickness, op: ">", threshold: x1 }
+P003:
+  type: predicate
+  # 周围油井产油量 > 区块平均产油量 * 1.5
+  operands:
+    - { name: neighbor_avg_oil_daily, op: ">", expr: "@block_avg_oil_daily * x_neighbor_factor" }  # TODO: 确认比较左值是否即 neighbor_avg_oil_daily
+P005:
+  type: predicate
+  logic: OR                          # 原文"…或…"
+  operands:
+    - { name: water_cut, op: "<", threshold: x13 }
+    - { name: water_cut, op: "<", expr: "@avg_water_cut - 8" }   # 8=Y 写死常数(§3.4b); avg 由 basis 传入
+P006:
+  type: predicate
+  operands:
+    - { name: oil_diff, op: ">", threshold: x12 }                # oil_diff 为派生量(§3.2)
+P007:
+  type: predicate
+  logic: OR
+  operands:
+    - { name: liquid_intensity, op: "<", threshold: x8 }
+    - { name: liquid_intensity, op: "<", expr: "x9 * @avg_liquid" }
+P008:
+  type: predicate
+  logic: OR
+  operands:
+    - { name: liquid_daily, op: "<", threshold: x6 }
+    - { name: liquid_daily, op: "<", expr: "x7 * @avg_liquid" }
+P009:
+  type: predicate
+  logic: OR
+  operands:
+    - { name: oil_daily, op: "<", threshold: x10 }
+    - { name: oil_daily, op: "<", expr: "x11 * @avg_oil" }       # TODO: 是否还含"周围油井产油量平均值"分支
+P010:
+  type: predicate
+  operands:
+    - { name: formation_pressure, op: ">", expr: "@block_avg_pressure" }   # TODO: 确认方向(> 区块平均)
+P011:
+  type: predicate
+  logic: OR
+  operands:
+    - { name: flow_pressure,      op: "<", expr: "@block_avg_flow_pressure" }
+    - { name: inflow_performance, op: ">", expr: "@block_avg_inflow" }
+P013:
+  type: predicate
+  operands:
+    # 与井距过滤(井距<x_well_distance)已隐含在 connected_open_wells 的统计口径里(外部传入即已按井距筛过)
+    - { name: connected_open_wells, op: ">", threshold: x20 }
+P015:
+  type: predicate
+  operands:
+    - { name: injection_completion_rate, op: ">", threshold: x22 }
+P016:
+  type: predicate
+  logic: AND
+  operands:
+    - { name: casing_inner_diameter, op: ">", threshold: casing_min }
+    - { name: casing_damage,         op: "==", value: false }    # TODO: 确认布尔方向(不严重→TRUE)
+
+# ═════════════════════════════════════════════════════════════
+# R 节点（中间规则）—— 聚合下游
+# ═════════════════════════════════════════════════════════════
+R01:
+  type: rule
+  aggregate: AND                    # 四大子结论全成立 → 具备可压性
+  children: [C011, C012, C013, C014]
+R02-1:
+  type: rule
+  aggregate: AND                    # 储层厚度足够 且 含水不高
+  children: [C015, C018]
+R02-2:
+  type: rule
+  aggregate: AND                    # TODO: 确认 R02-2 聚合(含 P003 相邻井潜力分支)
+  children: [C015, P003]
+R03:
+  type: rule
+  aggregate: AND                    # TODO: 确认(产液产油能力低 且 压力不匹配 → 低效)
+  children: [C019, C020]
+R05:
+  type: rule
+  aggregate: AND                    # 良好连通性 且 充足注水保障
+  children: [C022, C023]
+R06:
+  type: rule
+  aggregate: AND                    # P001 且 P002
+  children: [P001, P002]
+R10:
+  type: rule
+  children: [P005]
+R11:
+  type: rule
+  aggregate: OR                     # TODO: 生产能力判别,四判据疑似"或"(任一低即低效),请确认
+  children: [P006, P007, P008, P009]
+R12-1:
+  type: rule
+  children: [P010]
+R12-2:
+  type: rule
+  children: [P011]
+R14:
+  type: rule
+  children: [P013]
+R15:
+  type: rule
+  children: [P015]
+R19:
+  type: rule
+  children: [P016]
+
+# ═════════════════════════════════════════════════════════════
+# C 节点（结论）—— 聚合上游; 根结论为 C001
+# ═════════════════════════════════════════════════════════════
+C001:
+  type: conclusion
+  aggregate: AND
+  children: [R01]
+  is_root: true
+C011:
+  type: conclusion
+  aggregate: AND                    # 有油潜力: R02-1 且 R02-2
+  children: [R02-1, R02-2]
+C012:
+  type: conclusion
+  children: [R03]
+C013:
+  type: conclusion
+  children: [R19]
+C014:
+  type: conclusion
+  children: [R05]
+C015:
+  type: conclusion
+  children: [R06]
+C018:
+  type: conclusion
+  children: [R10]
+C019:
+  type: conclusion
+  children: [R11]
+C020:
+  type: conclusion
+  aggregate: OR                     # TODO: 压力不匹配: R12-1(地层压力) 或 R12-2(流压/液面) 任一
+  children: [R12-1, R12-2]
+C022:
+  type: conclusion
+  children: [R14]
+C023:
+  type: conclusion
+  children: [R15]
+
+# ═════════════════════════════════════════════════════════════
+# 附：拓扑速览（自底向上 P→R→C→根，供校验/追溯参考，不参与执行）
+# ═════════════════════════════════════════════════════════════
+# C001 ← R01 ← {C011, C012, C013, C014}
+#   C011 ← {R02-1 ← [C015 ← R06 ← (P001,P002)], [C018 ← R10 ← P005]},
+#          {R02-2 ← [C015], P003}
+#   C012 ← R03 ← {C019 ← R11 ← (P006,P007,P008,P009)},
+#                {C020 ← R12-1 ← P010 ; R12-2 ← P011}
+#   C013 ← R19 ← P016
+#   C014 ← R05 ← {C022 ← R14 ← P013}, {C023 ← R15 ← P015}

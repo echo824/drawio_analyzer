@@ -1,0 +1,48 @@
+# style.yaml — 结果样式与值回写格式
+# 权威依据：需求补充（基于真实模板）.md §4
+# 决策：结果用 fillColor 表达(绿/红/黄)，类型不再依赖颜色、由业务码前缀识别；原始 .drawio 只读。
+
+meta:
+  template: oil_fracturing_v1
+  version: 1.0.0
+
+# ── 1) 结果配色（仅替换 fillColor，其余 style 键原样保留）──
+result_style:
+  channel: fill
+  TRUE:    { fillColor: "#00B050" }     # 成立=绿
+  FALSE:   { fillColor: "#FF0000" }     # 不成立=红
+  UNKNOWN: { fillColor: "#FFFF00" }     # 条件缺失=饱和黄(区别模板淡黄 P)
+
+# ── 2) 模板原始底色（仅供"未求值节点透传"参考，运行时不覆盖、不参与类型识别）──
+template_default_fill:
+  P: "#FFFFCC"
+  R: "#CCFFFF"
+  C: "#FFCCFF"
+
+# ── 3) 未涉及节点：完全不改动（保持原色/文字/连线/字体）──
+untouched_nodes:
+  types: [edge, unclassified, container, text]   # 连线、说明文字、分组等
+  action: passthrough
+
+# ── 4) 可选角标（默认关闭；如需在颜色外再强化结果）──
+badge:
+  enabled: false
+  anchor_prefix: "__badge__"          # 角标节点 id 前缀，热加载时先清理再重建
+  symbols: { TRUE: "✔", FALSE: "✘", UNKNOWN: "?" }
+
+# ── 5) 参数值回写（§4.6）：node_values[节点id] 取裸值，插到各操作数运算符前 ──
+value_annotation:
+  enabled: true
+  scope: predicate_only                # 仅输入节点(P)回写；R/C 不写
+  brackets: ["（", "）"]               # 全角括号
+  number_format: raw                   # 按输入原样，不强制四舍五入   # TODO: 是否统一保留小数位
+  bool_true:  "是"
+  bool_false: "否"
+  unknown: ""                          # 缺失默认不显示(仅黄色底)；如需占位改 "—"
+  idempotent: true                     # 已有（数字）则跳过，禁止重复追加
+  preserve_rich_text: true             # 不破坏 html 实体 / <div>
+
+# ── 6) 输出渲染 ──
+output:
+  format: html                         # 主输出(内嵌 draw.io 官方 viewer)   # §12 预留 svg
+  viewer: drawio                       # 由 draw.io graphViewer 承载,保布局/连线/字体

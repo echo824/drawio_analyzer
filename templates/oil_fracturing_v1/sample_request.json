@@ -1,0 +1,34 @@
+{
+  "template": "oil_fracturing_v1",
+  "well_id": "W001",
+  "node_values": {
+    "P001": { "reservoir_layers": 5, "converted_thickness": 12.3 },
+    "P002": { "total_connected_thickness": 30 },
+    "P003": { "neighbor_avg_oil_daily": 9.0 },
+    "P005": { "water_cut": 40 },
+    "P006": { "oil_diff": 20 },
+    "P007": { "liquid_intensity": 1.2 },
+    "P008": { "liquid_daily": 15 },
+    "P009": { "oil_daily": 2 },
+    "P010": { "formation_pressure": 18 },
+    "P011": { "flow_pressure": 10, "inflow_performance": 500 },
+    "P013": { "connected_open_wells": 3 },
+    "P015": { "injection_completion_rate": 85 },
+    "P016": { "casing_inner_diameter": 110, "casing_damage": false }
+  },
+  "basis": {
+    "avg_water_cut": 55,
+    "avg_liquid": 25,
+    "avg_oil": 6,
+    "block_avg_oil_daily": 6,
+    "block_avg_pressure": 16,
+    "block_avg_flow_pressure": 12,
+    "block_avg_inflow": 600
+  },
+  "thresholds": {
+    "x3": 3,
+    "x4": 5,
+    "x13": 70,
+    "x12": 10
+  }
+}

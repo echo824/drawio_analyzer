@@ -1,0 +1,267 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+  <diagram name="Page-1" id="page-1">
+    <mxGraphModel dx="1501" dy="2054" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C001 油井具备可压性" vertex="1">
+          <mxGeometry height="60" width="180" x="1230" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-33" edge="1" parent="1" source="3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R01 油井可压性评价" vertex="1">
+          <mxGeometry height="60" width="180" x="1030" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-36" edge="1" parent="1" source="4" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C011【有油】油井具备增油潜力" vertex="1">
+          <mxGeometry height="60" width="180" x="977" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-37" edge="1" parent="1" source="5" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C012【可动】当前生产动态显示低效特征" vertex="1">
+          <mxGeometry height="60" width="180" x="795" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C013【安全】井筒状况完好允许安全施工" vertex="1">
+          <mxGeometry height="60" width="180" x="962" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-39" edge="1" parent="1" source="7" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="7" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C014【能补】井组注采系统提供有效支持" vertex="1">
+          <mxGeometry height="60" width="180" x="795" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-40" edge="1" parent="1" source="8" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R02-1 潜力分析" vertex="1">
+          <mxGeometry height="50" width="150" x="940" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-45" edge="1" parent="1" source="9" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R03 低效判别" vertex="1">
+          <mxGeometry height="50" width="150" x="630" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R05 注采系统评价" vertex="1">
+          <mxGeometry height="50" width="150" x="630" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-41" edge="1" parent="1" source="12" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C015 储层厚度足够" vertex="1">
+          <mxGeometry height="50" width="150" x="982" y="-30" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-44" edge="1" parent="1" source="15" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.044;entryY=0.319;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryPerimeter=0;" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C018 含水不高" vertex="1">
+          <mxGeometry height="50" width="150" x="770" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-46" edge="1" parent="1" source="16" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="16" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C019 产液产油能力低" vertex="1">
+          <mxGeometry height="50" width="150" x="470" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-47" edge="1" parent="1" source="17" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C020 流压与地层压力不匹配" vertex="1">
+          <mxGeometry height="50" width="150" x="470" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-53" edge="1" parent="1" source="21" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C022 良好的连通性" vertex="1">
+          <mxGeometry height="50" width="150" x="480" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-54" edge="1" parent="1" source="22" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFCCFF;strokeColor=#000000;" value="C023 充足的注水保障" vertex="1">
+          <mxGeometry height="50" width="150" x="550" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-55" edge="1" parent="1" source="23" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R06 厚度判别" vertex="1">
+          <mxGeometry height="50" width="150" x="970" y="-110" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-74" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.287;entryY=0.02;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryPerimeter=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="798.2691598020585" y="-92.59423931698097" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-78" edge="1" parent="1" source="26" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="26" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R10 含水判别" vertex="1">
+          <mxGeometry height="50" width="150" x="690" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-80" edge="1" parent="1" source="27" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R11 生产能力判别" vertex="1">
+          <mxGeometry height="50" width="150" x="300" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-85" edge="1" parent="1" source="28" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="28" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R12-1 压力系统分析" vertex="1">
+          <mxGeometry height="50" width="150" x="269" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-86" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1166" y="-80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-87" edge="1" parent="1" source="30" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R14 连通性判别" vertex="1">
+          <mxGeometry height="50" width="150" x="330" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-88" edge="1" parent="1" source="31" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R15 注水充足性判别" vertex="1">
+          <mxGeometry height="50" width="150" x="424" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-56" edge="1" parent="1" source="32" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P001&amp;nbsp;可压储层层数 &amp;gt; x3个 且&amp;nbsp;折算厚度（(砂岩-有效)/3+有效） &amp;gt; x4m" vertex="1">
+          <mxGeometry height="50" width="150" x="1050" y="-180" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-57" edge="1" parent="1" source="33" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P002 全井连通厚度 &amp;gt; x1 m" vertex="1">
+          <mxGeometry height="50" width="150" x="870" y="-170" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-38" edge="1" parent="1" source="6" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.328;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;" target="3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1080" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-48" edge="1" parent="1" source="E572067cMf_2y7_UBGg1-43" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.546;entryY=0.976;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="989.3152244326457" y="535.4596152583217" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-51" edge="1" parent="1" source="11" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-75" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="656.0960404323441" y="-182.3590751712493" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-77" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="581.9669914110091" y="-92.67766952966372" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-61" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;fontSize=12;" value="P005 本井含水 &amp;lt; x13% 或 &amp;lt; （全区平均值或井网平均值-Y）分段给Y值。" vertex="1">
+          <mxGeometry height="63.75" width="170" x="560" y="-78.75" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-81" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-62" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-62" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P006 本井初期与目前日产油之差 &amp;gt; x12 t" vertex="1">
+          <mxGeometry height="60" width="160" x="150" y="-20" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-82" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-63" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="27">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-63" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P007 本井产液强度 &amp;lt; x8 t/d.m 或 &amp;lt; x9×全区平均值或井网平均值" vertex="1">
+          <mxGeometry height="60" width="160" x="80" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-64" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P008 本井日产液 &amp;lt; x6 t 或 &amp;lt; x7×全区平均值或井网平均值" vertex="1">
+          <mxGeometry height="60" width="160" x="80" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-84" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-65" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=1;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-65" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P009 本井日产油 &amp;lt; x10 t 或 &amp;lt; x11×全区平均值或井网平均值或周围油井产油量平均值" vertex="1">
+          <mxGeometry height="60" width="160" x="94" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-89" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-66" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-66" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P010&amp;nbsp;目前地层压力 &amp;gt; 区块平均值" vertex="1">
+          <mxGeometry height="60" width="160" x="94" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-90" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-67" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryX=0.052;entryY=0.796;entryDx=0;entryDy=0;entryPerimeter=0;" target="eblSHx5zFnT1jXDRe1oR-36">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="320" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-67" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P011 流压小于区块平均值&lt;div&gt;或动液面大于区块平均值&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="160" x="130" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-91" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1175.299561194954" y="-209.790010279562" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-69" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P013 与本井连通水井（井距&amp;lt;350米）开井数 &amp;gt; x20 口" vertex="1">
+          <mxGeometry height="60" width="160" x="140" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-94" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-71" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-71" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P015 与本井连通水井配注完成率 &amp;gt; x22%（提出水井配套措施）" vertex="1">
+          <mxGeometry height="60" width="160" x="264" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-79" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-61" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.053;entryY=0.24;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-83" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-64" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.02;entryY=0.72;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-92" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-69" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.047;entryY=0.68;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E572067cMf_2y7_UBGg1-37" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;" value="p003 周围油井产油量&amp;gt;区块平均产油量*1.5" vertex="1">
+          <mxGeometry height="50" width="150" x="1200" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="E572067cMf_2y7_UBGg1-38" edge="1" parent="1" source="E572067cMf_2y7_UBGg1-37" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="eblSHx5zFnT1jXDRe1oR-33">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1100" y="50" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E572067cMf_2y7_UBGg1-43" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCFFFF;" value="R19 井筒施工可行性评价" vertex="1">
+          <mxGeometry height="60" width="160" x="977" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="E572067cMf_2y7_UBGg1-44" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFCC;" value="P016 油层深度以上套管损坏&lt;div&gt;不严重（套管通径&amp;gt;105mm,有套损库）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="160" x="940" y="635" as="geometry" />
+        </mxCell>
+        <mxCell id="E572067cMf_2y7_UBGg1-45" edge="1" parent="1" source="E572067cMf_2y7_UBGg1-44" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.398;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="E572067cMf_2y7_UBGg1-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eblSHx5zFnT1jXDRe1oR-35" edge="1" parent="1" source="eblSHx5zFnT1jXDRe1oR-33" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eblSHx5zFnT1jXDRe1oR-33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R02-2 潜力分析" vertex="1">
+          <mxGeometry height="50" width="150" x="1150" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="eblSHx5zFnT1jXDRe1oR-34" edge="1" parent="1" source="12" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.08;entryY=0.148;entryDx=0;entryDy=0;entryPerimeter=0;" target="eblSHx5zFnT1jXDRe1oR-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eblSHx5zFnT1jXDRe1oR-36" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#CCFFFF;strokeColor=#000000;" value="R12-2 压力系统分析" vertex="1">
+          <mxGeometry height="50" width="150" x="320" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="eblSHx5zFnT1jXDRe1oR-37" edge="1" parent="1" source="eblSHx5zFnT1jXDRe1oR-36" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.357;entryY=0.968;entryDx=0;entryDy=0;entryPerimeter=0;" target="17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

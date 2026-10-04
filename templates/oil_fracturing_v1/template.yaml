@@ -1,0 +1,26 @@
+# template.yaml — 模板元数据（评价单元清单）
+# 依据：需求分析及扩展点.md §4；需求补充（基于真实模板）.md
+template:
+  id: oil_fracturing_v1
+  name: 油井压裂评价
+  version: 1.0.0                      # 模板版本(与规则版本独立)
+  status: draft                       # draft | active
+
+# 模板组成文件（相对本目录）
+files:
+  flow:  flow.drawio                    # 由根目录 油井压裂2026-04-02.drawio 复制而来(只读源)
+  rules: rules.yaml
+  parameters: parameters.yaml
+  style: style.yaml
+
+# 渲染相关
+drawio:
+  pages: 1                            # 单页 Page-1
+  compressed: false                   # 明文 mxGraphModel
+  readonly_source: true               # 原始文件只读,评价结果不覆盖
+
+# 业务码识别约定（详见需求补充 §1）
+node_code:
+  pattern: '^\s*([PRC])(\d+(?:-\d+)?)\b'
+  case_insensitive: true              # p003 → P003
+  anchor: business_code               # 用业务码, 禁用 mxCell.id
