@@ -107,12 +107,19 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
         return jsonify({"status": "swapped", **result}), 200
 
     # ── 评价接口：解析→校验→求值→渲染（需求 §9）─────────
+    # 入参契约（2026-10-05 拍板）：必填 template + node_values；其余均可选。
+    # node_values 字段必须提供，但内部物理量可缺省（缺失 → 该节点 UNKNOWN，不报错）。
     @app.post("/api/v1/evaluate")
     def evaluate():  # noqa: ANN202
         payload = request.get_json(silent=True) or {}
         template_id = payload.get("template")
         if not template_id:
             return jsonify({"error": "invalid_request", "message": "缺少 'template' 字段"}), 400
+        node_values = payload.get("node_values")
+        if node_values is None:
+            return jsonify({"error": "invalid_request", "message": "缺少 'node_values' 字段"}), 400
+        if not isinstance(node_values, dict):
+            return jsonify({"error": "invalid_request", "message": "'node_values' 须为对象"}), 400
         mgr = app.config["MANAGER"]
         if template_id not in mgr.registry:
             raise TemplateNotFoundError(template_id)

@@ -122,54 +122,53 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 
 ## 参数结构（输入契约）
 
-请求体以**业务码**传值（`node_values`）：每个节点值为 **标量或数组**，数组按 `rules.yaml` 去重后的**操作数顺序位置映射**（也兼容按操作数名的映射）。`basis` 为跨井/区域聚合基准，`thresholds` 覆盖默认阈值占位。节选自 [`sample_request.json`](templates/oil_fracturing_v1/sample_request.json)：
+请求体以**业务码**传值（`node_values`）：每个节点值为 **标量或数组**，数组按 `rules.yaml` 去重后的**操作数顺序位置映射**（也兼容按操作数名的映射）。比较右值一律为阈值占位符（可经 `thresholds` 临时覆盖，缺省用 `parameters.yaml` 占位默认值）；`basis` 通道已随 R2 改版退役。节选自 [`sample_request.json`](templates/oil_fracturing_v1/sample_request.json)：
 
 ```jsonc
 {
-  "template": "oil_fracturing_v1",
-  "well_id": "W001",
-  "node_values": {
+  "template": "oil_fracturing_v1",   // 必填
+  "well_id": "W001",                 // 可选
+  "node_values": {                   // 必填（字段必须提供，可空对象）
     "P001": [5, 12.3],        // 数组按操作数顺序位置映射：[reservoir_layers, converted_thickness]
     "P016": [110, false],     // [casing_inner_diameter, casing_damage]，布尔按位置给出
     "P006": 20,               // 单操作数节点直接给标量
     "...": {}
   },
-  "basis":      { "avg_water_cut": 55, "block_avg_pressure": 16 },   // 聚合基准由外部传入
   "thresholds": { "x3": 3, "x4": 5, "x12": 10, "x13": 70 }           // 覆盖 parameters.yaml 占位
 }
 ```
 
-### 顶层字段
+### 顶层字段（入参契约，2026-10-05 拍板）
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `template` | string | ✅ | 模板 ID，须命中已加载注册表（否则 `404`） |
+| `node_values` | object | ✅ | 按 **P 业务码** 传本井实测/派生值：键=节点码，值=**标量 / 数组（按操作数顺序）/ 兼容 name 映射**；字段内部的物理量可缺省 |
 | `well_id` | string | ⬜ | 井号，仅用于标题与结果追溯 |
-| `node_values` | object | ⬜ | 按 **P 业务码** 传本井实测/派生值：键=节点码，值=**标量 / 数组（按操作数顺序）/ 兼容 name 映射** |
-| `basis` | object | ⬜ | 区域/井网**聚合基准**单值（`avg_*` / `block_avg_*`），供比较式右值 `@引用` |
-| `thresholds` | object | ⬜ | 覆盖 `parameters.yaml` 的阈值占位默认值（`x1…x22` 等符号） |
+| `thresholds` | object | ⬜ | 覆盖 `parameters.yaml` 的阈值占位默认值（`x1`…`x_p012_block` 符号） |
 
-> 省略的 `node_values` 节点/操作数 → 该判据判 `UNKNOWN`（不报错）。数值为 `int/float`；布尔用 `true/false`；类型/单位/范围由 `parameters.yaml` 定义、`InputValidator` 校验，非法值被丢弃并记入 `validation.issues`。
+> 除 `template` 与 `node_values` 外均为可选；`node_values` **字段必须提供**（可传空对象 `{}` → 全节点 `UNKNOWN`，仍正常返 200），但字段内缺省的具体量 → 对应判据 `UNKNOWN`（不报错）。数值为 `int/float`；布尔用 `true/false`；类型/单位/范围由 `parameters.yaml` 定义、`InputValidator` 校验，非法值被丢弃并记入 `validation.issues`。~~`basis`~~ 已随 R2 改版退役（右值全面阈值化，服务不感知聚合口径）。
 
 ### `node_values` —— P 节点判据（操作数名 → 值）
 
-| P 码 | 判据含义 | 操作数（传值键，单位） | 比较 | 右值：阈值 `x` / 基准 `@basis` | 节点内合并 |
+| P 码 | 判据含义 | 操作数（传值键，单位） | 比较 | 右值：阈值符号 | 节点内合并 |
 |---|---|---|---|---|---|
 | `P001` | 可压层数 且 折算厚度 | `reservoir_layers`(层,int 0~100) · `converted_thickness`(m) | `>` | `x3` · `x4` | AND |
 | `P002` | 全井连通厚度 | `total_connected_thickness`(m) | `>` | `x1` | AND |
-| `P003` | 周围油井日产油 vs 区块均值 | `neighbor_avg_oil_daily`(t) | `>` | `@block_avg_oil_daily * x_neighbor_factor` | AND |
-| `P005` | 含水率够低 | `water_cut`(% 0~100) | `<` | `x13` 或 `@avg_water_cut - x_p005_y` | OR |
+| `P003` | 周围油井日产油（右值已塌缩） | `neighbor_avg_oil_daily`(t) | `>` | `x_p003` | AND |
+| `P005` | 含水率够低 | `water_cut`(% 0~100) | `<` | `x13` / `x_p005_region` / `x_p005_net` | OR |
 | `P006` | 初期−目前日产油之差 | `oil_diff`(t) | `>` | `x12` | AND |
-| `P007` | 产液强度低 | `liquid_intensity`(t/d.m) | `<` | `x8` 或 `x9 * @avg_liquid` | OR |
-| `P008` | 日产液低 | `liquid_daily`(t) | `<` | `x6` 或 `x7 * @avg_liquid` | OR |
-| `P009` | 日产油低 | `oil_daily`(t) | `<` | `x10` 或 `x11 * @avg_oil` | OR |
-| `P010` | 地层压力 vs 区块均值 | `formation_pressure`(MPa) | `>` | `@block_avg_pressure` | AND |
-| `P011` | 流压 / 动液面 | `flow_pressure`(MPa) · `inflow_performance`(m) | `<` / `>` | `@block_avg_flow_pressure` / `@block_avg_inflow` | OR |
+| `P007` | 产液强度低 | `liquid_intensity`(t/d.m) | `<` | `x8` / `x_p007_region` / `x_p007_net` | OR |
+| `P008` | 日产液低 | `liquid_daily`(t) | `<` | `x6` / `x_p008_region` / `x_p008_net` | OR |
+| `P009` | 日产油低 | `oil_daily`(t) | `<` | `x10` / `x_p009_region` / `x_p009_net` | OR |
+| `P010` | 地层压力（vs 区块均值，已塌缩） | `formation_pressure`(MPa) | `>` | `x_p010_block` | AND |
+| `P011` | 流压（1005 修订版仅留此分支） | `flow_pressure`(MPa) | `<` | `x_p011_flow_block` | AND |
+| `P012` | 动液面大于区块均值（1005 新增） | `inflow_performance`(m) | `>` | `x_p012_block` | AND |
 | `P013` | 连通开井数 | `connected_open_wells`(口,int) | `>` | `x20` | AND |
 | `P015` | 配注完成率 | `injection_completion_rate`(%) | `>` | `x22` | AND |
-| `P016` | 套管通径 且 无严重损坏 | `casing_inner_diameter`(mm) · `casing_damage`(bool) | `>` / `==` | `casing_min` / `false` | AND |
+| `P016` | 套管通径 且 无严重损坏 | `casing_inner_diameter`(mm) · `casing_damage`(bool) | `>` / `==` | `casing_min` / 字面量 `false` | AND |
 
-> `@name` 引用 `basis` 中的基准量；无前缀符号（`x3`…）引用 `thresholds` / `parameters.yaml` 常数。完整语义见 `parameters.yaml`（`quantities`）与 `rules.yaml`（各 P 节点 `operands`）。
+> 右值全部为阈值符号（定义于 `parameters.yaml`，请求 `thresholds` 可覆盖）；后缀 `region`/`net`/`block` = 全区/井网/区块口径由**外部算好后塌缩的单值**，服务不感知、不统计。布尔字面量比较（P016）不参与阈值替换。完整语义见 `rules.yaml` 各 P 节点 `operands`。
 
 ### `node_values` 传值形态（标量 / 数组）
 
@@ -178,50 +177,39 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | P 码 | 位置含义 → 传值示例 |
 |---|---|
 | `P001` | `[reservoir_layers, converted_thickness]` → `[5, 12.3]` |
-| `P002` | `total_connected_thickness` → `30`（标量） |
-| `P003` | `neighbor_avg_oil_daily` → `9.0`（标量；右值 `block_avg_oil_daily` 走 `basis`） |
-| `P005` | `water_cut` → `40`（标量；两个比较共用同一实测值） |
-| `P011` | `flow_pressure` → `10`（标量；1005 修订版删动液面分支，改由 P012 承担） |
 | `P016` | `[casing_inner_diameter, casing_damage]` → `[110, false]` |
+| 其余全部 P 码 | 单操作数节点直接给标量，如 `"P012": 700`、`"P011": 10` |
 
-> 其余单操作数节点（`P006/P007/P008/P009/P010/P012/P013/P015`）均用标量。数组偏短 → 尾部记 `missing`；偏长 → 记 `type` 并忽略多余位；亦接受 `{"P001": {"reservoir_layers": 5, "converted_thickness": 12.3}}` 的按名映射（向后兼容）。
-
-### `basis` —— 聚合基准（外部传入，服务不做统计）
-
-| 键 | 单位 | 被引用于 |
-|---|---|---|
-| `avg_water_cut` | % | `P005` |
-| `avg_liquid` | t | `P007` `P008` |
-| `avg_oil` | t | `P009` |
-| `block_avg_oil_daily` | t | `P003` |
-| `block_avg_pressure` | MPa | `P010` |
-| `block_avg_flow_pressure` | MPa | `P011` |
-| `block_avg_inflow` | m | `P011` |
+> 数组偏短 → 尾部记 `missing`；偏长 → 记 `type` 并忽略多余位；亦接受 `{"P001": {"reservoir_layers": 5, "converted_thickness": 12.3}}` 的按名映射（向后兼容）。多分支比较（P005/P007/P008/P009 的 OR）共用同一个实测值，无需重传。
 
 ### `thresholds` —— 阈值符号（默认均为占位值，与代码解耦）
 
 | 符号 | 默认 | 单位 | 含义 | 符号 | 默认 | 单位 | 含义 |
 |---|---|---|---|---|---|---|---|
 | `x1` | 5 | m | 连通厚度 | `x10` | 3 | t | 日产油 |
-| `x3` | 3 | 层 | 可压层数 | `x11` | 0.5 | — | 日产油×均值 |
-| `x4` | 5 | m | 折算厚度 | `x12` | 10 | t | 日产油之差 |
-| `x6` | 10 | t | 日产液 | `x13` | 70 | % | 含水率阈值 |
-| `x7` | 0.5 | — | 日产液×均值 | `x20` | 2 | 口 | 连通开井数 |
+| `x3` | 3 | 层 | 可压层数 | `x12` | 10 | t | 日产油之差 |
+| `x4` | 5 | m | 折算厚度 | `x13` | 70 | % | 含水率 |
+| `x6` | 10 | t | 日产液 | `x20` | 2 | 口 | 连通开井数 |
 | `x8` | 2 | t/d.m | 产液强度 | `x22` | 80 | % | 配注完成率 |
-| `x9` | 0.8 | — | 产液强度×均值 | `casing_min` | 105 | mm | 套管通径下限 |
-| `x_p005_y` | 8 | % | P005 表达式常数 | `x_neighbor_factor` | 1.5 | — | P003 区块均值系数 |
+| `casing_min` | 105 | mm | 套管通径下限 | `x_p003` | 9 | t | P003 邻井均值×系数（已塌缩） |
+| `x_p005_region` | 47 | % | P005 全区基准 | `x_p005_net` | 45 | % | P005 井网基准 |
+| `x_p007_region` | 1.6 | t/d.m | P007 全区基准 | `x_p007_net` | 1.5 | t/d.m | P007 井网基准 |
+| `x_p008_region` | 12.5 | t | P008 全区基准 | `x_p008_net` | 12 | t | P008 井网基准 |
+| `x_p009_region` | 3 | t | P009 全区基准 | `x_p009_net` | 2.5 | t | P009 井网基准 |
+| `x_p010_block` | 16 | MPa | P010 区块平均地层压 | `x_p011_flow_block` | 12 | MPa | P011 区块平均流压 |
+| `x_p012_block` | 600 | m | P012 区块平均动液面 | — | — | — | — |
 
-> 真实数值确定后**只改 `parameters.yaml`**（或在请求 `thresholds` 中临时覆盖），求值逻辑不受影响。
+> 均为占位默认（待业务核实，B 组）；上线真实值确定后**只改 `parameters.yaml`**（或在请求 `thresholds` 中临时覆盖），求值逻辑不受影响。旧机制符号（系数 `x7`/`x9`/`x11`、`x_p005_y`、`x_neighbor_factor`、`basis` 通道）均已随 R2 改版退役。
 
 仓库附带多份边界示例，便于自测与演示：
 
 | 文件 | 场景 | 预期 |
 |---|---|---|
-| `sample_request_true.json` | 全部达标（13 个 P 均判真） | 根结论 `C001=TRUE`、P/C 全绿、逐个回写 |
-| `sample_request.json` | 完整黄金样例（`P003` 邻井产油不足判假） | 根 `C001=FALSE`、三色分明、值回写 |
-| `sample_request_missing.json` | 参数缺失（部分填） | 省略项 → `UNKNOWN`、不回写 |
+| `sample_request_true.json` | 全部达标（14 个 P 均判真） | 根结论 `C001=TRUE`、P/C 全绿、符号换数值 |
+| `sample_request.json` | 完整黄金样例（`P003` 邻井产油不足判假） | 根 `C001=FALSE`、三色分明、阈值符号替换 |
+| `sample_request_missing.json` | 参数缺失（部分填） | 省略项 → `UNKNOWN` |
 | `sample_request_invalid.json` | 越界 / 非数值 / 非法布尔 | 记 `issues`、节点 `UNKNOWN`、不抛错 |
-| `sample_request_minimal.json` | 完全无输入 | 全 `UNKNOWN`、`validation.ok=true` |
+| `sample_request_minimal.json` | 空 `node_values` 对象 | 全 `UNKNOWN`、`validation.ok=true` |
 
 ---
 

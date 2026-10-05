@@ -117,15 +117,27 @@ def test_evaluate_empty_inputs_all_unknown(client) -> None:  # noqa: ANN001
     assert all(v == "UNKNOWN" for v in data["node_states"].values())
 
 
-# ── 错误码：缺 template→400；未知模板→404 ─────────────────
+# ── 错误码：缺 template/缺 node_values→400；未知模板→404 ────
 def test_evaluate_missing_template(client) -> None:  # noqa: ANN001
     resp = client.post("/api/v1/evaluate", json={})
     assert resp.status_code == 400
     assert resp.get_json()["error"] == "invalid_request"
 
 
+def test_evaluate_missing_node_values_400(client) -> None:  # noqa: ANN001
+    # 入参契约（2026-10-05 拍板）：必填 template + node_values，字段必须提供（可空对象）
+    resp = client.post("/api/v1/evaluate", json={"template": TEMPLATE_ID})
+    assert resp.status_code == 400
+    assert "node_values" in resp.get_json()["message"]
+
+
+def test_evaluate_non_object_node_values_400(client) -> None:  # noqa: ANN001
+    resp = client.post("/api/v1/evaluate", json={"template": TEMPLATE_ID, "node_values": [1, 2]})
+    assert resp.status_code == 400
+
+
 def test_evaluate_unknown_template(client) -> None:  # noqa: ANN001
-    resp = client.post("/api/v1/evaluate", json={"template": "nope"})
+    resp = client.post("/api/v1/evaluate", json={"template": "nope", "node_values": {}})
     assert resp.status_code == 404
     assert resp.get_json()["error"] == "template_not_found"
 
