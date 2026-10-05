@@ -21,3 +21,6 @@ Thumbs.db
 *.cache
 out/
 *.generated.html
+
+# 提交信息临时文件（git commit -F 载体，防误入 git add -A）
+msg_commit*.txt
