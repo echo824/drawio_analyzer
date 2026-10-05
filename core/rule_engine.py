@@ -12,6 +12,7 @@ import operator
 from typing import Any
 
 from .expr import ParameterContext
+from .graph import toposort
 from .models import EvaluationResult, TriState
 
 # 支持的比较运算符（模板作者笔误之外的全部形态）
@@ -136,28 +137,14 @@ class RuleEngine:
         return None
 
     def _toposort(self) -> list[str]:
-        """DFS 拓扑排序（后序），保证 children 先于 parent；发现回边即判环。"""
-        order: list[str] = []
-        state: dict[str, int] = {}          # 0=待访 1=在栈 2=完成
-        WHITE, GRAY, BLACK = 0, 1, 2
-
-        def visit(code: str, stack: list[str]) -> None:
-            mark = state.get(code, WHITE)
-            if mark == GRAY:
-                cycle = " → ".join(stack[stack.index(code):] + [code])
-                raise ValueError(f"rules.yaml 依赖存在环: {cycle}")
-            if mark == BLACK:
-                return
-            state[code] = GRAY
-            node = self.nodes.get(code)
-            for ch in (getattr(node, "children", None) or []):
-                if ch in self.nodes:
-                    visit(ch, stack + [code])
-            state[code] = BLACK
-            order.append(code)              # 后序：children 已在前面
-
-        for code in self.nodes:
-            visit(code, [])
+        """自底向上拓扑序（children 先于 parent）；检出环即抛错（共享算法见 core.graph）。"""
+        children_map = {
+            code: (getattr(node, "children", None) or [])
+            for code, node in self.nodes.items()
+        }
+        order, cycle = toposort(children_map)
+        if cycle is not None:
+            raise ValueError(f"rules.yaml 依赖存在环: {' → '.join(cycle)}")
         return order
 
     def _aggregate(self, node: Any, child_states: list[TriState]) -> TriState:

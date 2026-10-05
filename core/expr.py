@@ -29,6 +29,8 @@ _UNARY_OPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
 # @name —— 基准引用；解析前替换为合法标识符占位，记录哪些是 ref
 _AT_REF = re.compile(r"@\s*([A-Za-z_]\w*)")
 _REF_PREFIX = "_atref_"
+# 标识符（裸符号 / @引用改写后均以字母/下划线开头）；数字字面量不会被匹配
+_IDENT = re.compile(r"[A-Za-z_]\w*")
 
 
 class ExprError(Exception):
@@ -118,6 +120,26 @@ def _rewrite_refs(expr: str) -> tuple[str, set[str]]:
     return _AT_REF.sub(repl, expr), refs
 
 
+def extract_expr_symbols(expr: str) -> tuple[set[str], set[str]]:
+    """从算式中静态抽取符号（不求值），供校验 V23/V24 与求值层共用。
+
+    返回 (plain, refs)：
+      - plain：裸符号（约定为常数阈值/符号名，如 `x_p005_y`、`x9`）；
+      - refs ：`@` 引用的基准名（不含 `@`，如 `avg_water_cut`）。
+    仅做词法抽取，复用 `_rewrite_refs`/`_AT_REF`，与 `eval_expr` 的引用约定保持一致。
+    """
+    rewritten, _ = _rewrite_refs(expr)
+    plain: set[str] = set()
+    refs: set[str] = set()
+    for match in _IDENT.finditer(rewritten):
+        token = match.group(0)
+        if token.startswith(_REF_PREFIX):
+            refs.add(token[len(_REF_PREFIX):])
+        else:
+            plain.add(token)
+    return plain, refs
+
+
 def _num(value: Any) -> Number | None:
     """把外部传入值规范为数值；None/空串→None；非数字原样交给求值层判缺失。"""
     if value is None or value == "":
@@ -158,4 +180,5 @@ __all__ = [
     "ParameterContext",
     "ExprError",
     "build_parameter_context",
+    "extract_expr_symbols",
 ]
