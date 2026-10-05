@@ -93,7 +93,7 @@ def test_evaluate_json_root_true(client, sample_true) -> None:  # noqa: ANN001
     assert data["validation"]["ok"] is True
 
 
-# ── 全部达标：HTML 分支含绿色与值回写───────────────
+# ── 全部达标：HTML 分支含绿色与阈值替换───────────────
 def test_evaluate_true_returns_html(client, sample_true) -> None:  # noqa: ANN001
     resp = client.post("/api/v1/evaluate", json=sample_true)
     assert resp.status_code == 200
@@ -137,3 +137,44 @@ def test_model_cache_reused(app_obj) -> None:  # noqa: ANN001
     m2 = mgr.get_model(TEMPLATE_ID)
     assert m1 is m2                                          # 同一实例，避免重复解析
     assert len(m1.code_map) == 37
+
+
+# ── 演示入口：首页 / 与 /demo/<模板>[?sample=] ─────────────
+def test_index_lists_demo_links(client) -> None:  # noqa: ANN001
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert resp.headers["Content-Type"].startswith("text/html")
+    body = resp.get_data(as_text=True)
+    assert f"/demo/{TEMPLATE_ID}" in body                     # 标准样例链接
+    for suffix in ("_true", "_missing", "_invalid", "_minimal"):
+        assert f"?sample={suffix}" in body                    # 多样例自动枚举
+
+
+@pytest.mark.parametrize("suffix", ["", "_true", "_missing", "_invalid", "_minimal"])
+def test_demo_samples_render_html(client, suffix) -> None:  # noqa: ANN001
+    resp = client.get(f"/demo/{TEMPLATE_ID}" + (f"?sample={suffix}" if suffix else ""))
+    assert resp.status_code == 200
+    assert resp.headers["Content-Type"].startswith("text/html")
+    body = resp.get_data(as_text=True)
+    assert VIEWER in body                                    # 内嵌 draw.io viewer
+    assert "x12" not in body                                 # 阈值占位符已换为数值（§6.6 改版）
+
+
+def test_demo_unknown_template(client) -> None:  # noqa: ANN001
+    resp = client.get("/demo/nope")
+    assert resp.status_code == 404
+    assert resp.get_json()["error"] == "template_not_found"
+
+
+def test_demo_unknown_sample_lists_available(client) -> None:  # noqa: ANN001
+    resp = client.get(f"/demo/{TEMPLATE_ID}?sample=_nope")
+    assert resp.status_code == 404
+    data = resp.get_json()
+    assert data["error"] == "sample_not_found"
+    assert "sample_request_true.json" in data["available"]    # 404 附可用清单
+
+
+def test_demo_bad_suffix_rejected(client) -> None:  # noqa: ANN001
+    resp = client.get(f"/demo/{TEMPLATE_ID}?sample=../etc")
+    assert resp.status_code == 400                            # 正则白名单拦截路径穿越
+    assert resp.get_json()["error"] == "invalid_sample"
