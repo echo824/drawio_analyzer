@@ -52,7 +52,7 @@ def test_evaluate_returns_html(client, sample) -> None:  # noqa: ANN001
     body = resp.get_data(as_text=True)
     assert VIEWER in body                                   # viewer 脚本
     assert "#FF0000" in body                                # C001 FALSE→红（来自 style）
-    assert "（20）" in body                                  # P006 值回写（1.7）
+    assert "x12" not in body                                 # P006 阈值占位符已换为数值（§6.6 改版）
 
 
 # ── result=json 返回结构化三态 ────────────────────────────
@@ -102,7 +102,7 @@ def test_evaluate_true_returns_html(client, sample_true) -> None:  # noqa: ANN00
     assert VIEWER in body
     assert "#00B050" in body                                 # 全绿结论
     assert "#FF0000" not in body                             # 无红（未出现 FALSE 着色）
-    assert "（20）" in body                                   # P006 oil_diff=20 回写
+    assert "x12" not in body and "10 t" in body              # P006 占位符→请求阈值 10（实依多重转义只断裸片段）
 
 
 # ── 非法/缺失输入：不抛错，相关节点置 UNKNOWN（§9.3）───────

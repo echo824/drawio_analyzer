@@ -152,8 +152,7 @@ def _run_pipeline(mgr: TemplateManager, template_id: str, payload: dict) -> dict
         mgr.flow_path(template_id),
         model,
         result,
-        nodes=cfg.nodes,
-        node_values=nv.values,
+        symbols=context.symbols,                       # §6.6 改版：描述中的阈值符号→具体数值
         title=f"油井压裂评价结果 · {payload.get('well_id') or cfg.template_id}",
     )
 

@@ -1,6 +1,6 @@
 """ISSUE-1.10 · Phase 1 黄金端到端回归。
 
-固化「校验→求值→着色/回写」的完整快照（以业务码为主键，与随机 mxCell.id 无关），
+固化「校验→求值→着色/阈值替换」的完整快照（以业务码为主键，与随机 mxCell.id 无关），
 作为 CI 门禁。可用 `pytest --update-golden` 在确认变更后重新生成。
 """
 from __future__ import annotations
@@ -32,5 +32,11 @@ def test_snapshot_invariants(templates_root: Path) -> None:
     assert "UNKNOWN" not in snap["node_states"].values()    # 黄金样例全链路无缺失
     # 结果色仅来自 style 三色，未在代码里硬编码其它色
     assert set(snap["colors"].values()) <= {"#00B050", "#FF0000", "#FFFF00"}
-    # 值注释覆盖全部输入 P 节点
-    assert set(snap["annotations"]) == {c for c in snap["node_states"] if c.startswith("P")}
+    # 阈值替换覆盖“描述含已定义阈值符号”的全部 P 节点（与实测值无关）：
+    # P010/P011/P016 等描述已无占位符 → 不产生补丁
+    assert set(snap["annotations"]) == {
+        "P001", "P002", "P005", "P006", "P007", "P008", "P009", "P013", "P015",
+    }
+    # 占位符替换后的描述不应再含已定义符号名（括号内解释文字除外）
+    assert all("x13" not in v and "x12" not in v and "x22" not in v
+               for v in snap["annotations"].values())

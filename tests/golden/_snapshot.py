@@ -1,7 +1,7 @@
 """黄金快照计算工具（ISSUE-1.10）。
 
-对任意模板根目录跑「校验→求值→着色/回写」，产出一足以业务码为主键的、
-与随机 mxCell.id 无关的稳定快照（三态 / 结果色 / 值注释）。供回归与
+对任意模板根目录跑「校验→求值→着色/阈值替换」，产出一足以业务码为主键的、
+与随机 mxCell.id 无关的稳定快照（三态 / 结果色 / 替换后描述）。供回归与
 配置解耦测试复用。
 """
 from __future__ import annotations
@@ -54,7 +54,7 @@ def run_bundle(root: Path, template_id: str, payload: dict[str, Any]) -> dict[st
     renderer = Renderer(cfg.style)
     summary = renderer.summary_dict(model, result)
     id_to_code = {v: k for k, v in model.code_map.items()}
-    patches = renderer.annotate(cfg.nodes, nv.values, model)          # cell_id → 新 label
+    patches = renderer.substitute(model, context.symbols)       # cell_id → 新 label（§6.6 改版）
     annotations = {id_to_code[cid]: lab for cid, lab in patches.items() if cid in id_to_code}
     all_issues = list(nv.issues) + list(thr_issues)
 
@@ -71,7 +71,7 @@ def run_bundle(root: Path, template_id: str, payload: dict[str, Any]) -> dict[st
 
 
 def snapshot_for(root: Path, template_id: str) -> dict[str, Any]:
-    """黄金样例的稳定性快照（不含 issues，仅业务码三态/结果色/回写）。"""
+    """黄金样例的稳定性快照（不含 issues，仅业务码三态/结果色/替换后描述）。"""
     _, _, payload = _load(root, template_id)
     b = run_bundle(root, template_id, payload)
     return {

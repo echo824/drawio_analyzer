@@ -1,8 +1,9 @@
-# style.yaml — 结果样式与值回写格式
+# style.yaml — 结果样式与阈值占位符替换格式
 # 权威依据：需求补充（基于真实模板）.md §4
 # 决策：结果用 fillColor 表达(绿/红/黄)，类型不再依赖颜色、由业务码前缀识别；原始 .drawio 只读。
-# 【E 处置】以下均为当前确认策略，保留不变：色值 E1、值回写小数位 E2(raw)、
-#   UNKNOWN 占位 E3(默认不显示)、角标开关 E4(默认关闭)；如需变更只改本文件。
+# 【E 处置】以下均为当前确认策略，保留不变：色值 E1、UNKNOWN 占位 E3(默认不显示)、
+#   角标开关 E4(默认关闭)；【E2 作废】旧“实测值回写小数位 raw”随运算符插值方式退役，
+#   数值格式约定平移至下方 threshold_substitution.number_format；如需变更只改本文件。
 
 meta:
   template: oil_fracturing_v1
@@ -34,16 +35,15 @@ badge:
   anchor_prefix: "__badge__"          # 角标节点 id 前缀，热加载时先清理再重建
   symbols: { "TRUE": "✔", "FALSE": "✘", "UNKNOWN": "?" }
 
-# ── 5) 参数值回写（§4.6）：node_values[节点id] 取裸值，插到各操作数运算符前 ──
-value_annotation:
+# ── 5) 阈值占位符替换（§6.6 改版·2026-10 右值全面阈值化）：
+#      P 节点描述中的阈值符号(x13/x_p005_region…) → 具体数值(经请求 thresholds 传入) ──
+threshold_substitution:
   enabled: true
-  scope: predicate_only                # 仅输入节点(P)回写；R/C 不写
-  brackets: ["（", "）"]               # 全角括号
-  number_format: raw                   # E2：按输入原样，不强制四舍五入（当前策略）
-  bool_true:  "是"
-  bool_false: "否"
-  unknown: ""                          # E3：缺失默认不显示(仅黄色底)；如需占位改 "—"
-  idempotent: true                     # 已有（数字）则跳过，禁止重复追加
+  scope: predicate_only                # 仅输入节点(P)描述参与替换；R/C 透传
+  skip_brackets: ["（）", "()"]        # 括号内为解释性文字，绝不替换（如 P013 的“（井距<350米）”）
+  number_format: raw                   # 按传入原样，整数值浮点去小数点（12.0→12）
+  undefined: keep                      # 未取值的符号(None/不在符号表)原样保留；后期模板直写数字自然无匹配
+  idempotent: true                     # 替换后不再含符号 → 天然幂等，重复渲染不叠加
   preserve_rich_text: true             # 不破坏 html 实体 / <div>
 
 # ── 6) 输出渲染 ──
