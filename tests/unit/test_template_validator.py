@@ -1,4 +1,4 @@
-"""模板校验器 V01-V24 单测（需求 §7，Phase 2 commit B）。
+"""模板校验器 V01-V23/V30/V31 单测（需求 §7，Phase 2 commit B；V24 已退役）。
 
 合成模型逐条覆盖正/负分支；并对真实模板做回归快照——已知它含 5 条悬空边
 （_74/_86/_75/_77/_91，见需求 §7.2 / test_drawio_parser 的 DANGLING_IDS）与
@@ -241,15 +241,6 @@ def test_v23_defined_symbols_pass() -> None:
     )
     report = validate(model, cfg)
     assert not any(f.code == "V23" for f in report.findings)
-
-
-# ── V24 接口位（暂缓）───────────────────────────────────
-
-def test_v24_is_stub_returning_no_findings() -> None:
-    model, cfg = _valid()
-    cfg.nodes["P001"] = _predicate(operands=[{"name": "x", "op": ">", "threshold": "t1"}])
-    report = validate(model, cfg)
-    assert "V24" not in codes(report)              # 暂不产出 V24
 
 
 # ── V30/V31 安全（读原始 flow.drawio 文本）───────────
