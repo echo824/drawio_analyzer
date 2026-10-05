@@ -185,8 +185,8 @@ def test_golden_sample_full_snapshot(cfg, templates_root: Path) -> None:  # noqa
     #   P003 假仍在 R02-2(AND) 短路，但 C011=OR 见 R02-1 真即翻 TRUE。
     expected = {
         "P001": T, "P002": T, "P003": F, "P005": T, "P006": T, "P007": T,
-        "P008": F, "P009": T, "P010": T, "P011": T, "P013": T, "P015": T, "P016": T,
-        "R11": F, "R12-1": T, "R12-2": T, "R19": T, "R06": T, "R10": T, "R14": T, "R15": T,
+        "P008": F, "P009": T, "P010": T, "P011": T, "P012": F, "P013": T, "P015": T, "P016": T,
+        "R11": F, "R12-1": T, "R12-2": T, "R12-3": F, "R19": T, "R06": T, "R10": T, "R14": T, "R15": T,
         "R02-1": T, "R02-2": F, "C015": T, "C018": T, "C011": T, "C020": T,
         "C019": F, "R03": F, "C012": F, "C013": T, "R05": T, "C022": T, "C023": T,
         "C014": T, "R01": F, "C001": F,

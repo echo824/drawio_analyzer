@@ -35,7 +35,7 @@ def _assert_common_invariants(snap: dict[str, Any]) -> None:
     assert set(states.values()) <= {"TRUE", "FALSE", "UNKNOWN"}
     # R(关系)节点从不入色，且 P/C 全部入色（每个都有求值态，含 UNKNOWN→黄）
     assert not [c for c in colors if c.startswith("R")]
-    assert len(colors) == 24
+    assert len(colors) == 25
     assert set(colors.values()) <= {YELLOW, GREEN, RED}
     # 描述补丁只发生在 P 节点（predicate_only）
     assert all(code.startswith("P") for code in snap["annotations"])
@@ -95,7 +95,7 @@ def test_minimal_all_unknown(templates_root: Path) -> None:  # noqa: ANN001
 
 
 def test_all_meets_criteria_root_true(templates_root: Path) -> None:  # noqa: ANN001
-    """全部达标：13 个 P 判真 → 沿 R→C 聚合使根结论 C001=TRUE。"""
+    """全部达标：14 个 P 判真（1005 版含 P012）→ 沿 R→C 聚合使根结论 C001=TRUE。"""
     snap = _run(templates_root, "sample_request_true")
     _assert_common_invariants(snap)
 
@@ -103,9 +103,9 @@ def test_all_meets_criteria_root_true(templates_root: Path) -> None:  # noqa: AN
     # 决定性关键路径全真（P003/P008 由假翻真后打通 C011/C012）
     for code in ("C001", "R01", "C011", "C012", "C013", "C014", "P003", "P008"):
         assert snap["node_states"][code] == "TRUE", code
-    # 13 个 P 全真、全绿；无 issue
+    # 14 个 P 全真、全绿；无 issue
     p_codes = [c for c in snap["node_states"] if c.startswith("P")]
-    assert len(p_codes) == 13
+    assert len(p_codes) == 14
     assert all(snap["node_states"][c] == "TRUE" for c in p_codes)
     assert all(snap["colors"][c] == GREEN for c in p_codes)
     assert set(snap["annotations"]) == SUBSTITUTED_P          # 替换覆盖面与取值无关
@@ -120,4 +120,4 @@ def test_samples_run_without_error(templates_root: Path, name: str) -> None:  # 
     """任何示例都应跑通并给出根状态（鲁棒性兜底）。"""
     snap = _run(templates_root, name)
     assert snap["root_state"] in {"TRUE", "FALSE", "UNKNOWN"}
-    assert len(snap["node_states"]) == 37                     # 三态覆盖全部业务码（含 R）
+    assert len(snap["node_states"]) == 39                     # 三态覆盖全部业务码（含 R；1005 版 +P012/R12-3）

@@ -90,6 +90,11 @@ P011:
   operands:
     - { name: flow_pressure,      op: "<", threshold: x_p011_flow_block }
     - { name: inflow_performance, op: ">", threshold: x_p011_inflow_block }
+P012:
+  type: predicate
+  # 1005 版接入："动液面大于区块平均值"——独立参与 C020（经 R12-3）；左值与 P011 第二分支同量
+  operands:
+    - { name: inflow_performance, op: ">", threshold: x_p012_block }
 P013:
   type: predicate
   operands:
@@ -150,6 +155,10 @@ R12-2:
   type: rule
   aggregate: AND                    # 单子节点
   children: [P011]
+R12-3:
+  type: rule
+  aggregate: AND                    # 单子节点；1005 版新增（注水不足分支）
+  children: [P012]
 R14:
   type: rule
   aggregate: AND                    # 单子节点
@@ -202,8 +211,8 @@ C019:
   children: [R11]
 C020:
   type: conclusion
-  aggregate: OR                     # 新规则下仍为 OR(R12-1 或 R12-2 任一)
-  children: [R12-1, R12-2]
+  aggregate: OR                     # 新规则下仍为 OR(三支任一)；1005 版增 R12-3
+  children: [R12-1, R12-2, R12-3]
 C022:
   type: conclusion
   aggregate: OR                     # 单子节点
@@ -220,6 +229,6 @@ C023:
 #   C011 ← {R02-1 ← [C015 ← R06 ← (P001,P002)], [C018 ← R10 ← P005]},
 #          {R02-2 ← [C015], P003}
 #   C012 ← R03 ← {C019 ← R11 ← (P006,P007,P008,P009)},
-#                {C020 ← R12-1 ← P010 ; R12-2 ← P011}
+#                {C020 ← R12-1 ← P010 ; R12-2 ← P011 ; R12-3 ← P012}
 #   C013 ← R19 ← P016
 #   C014 ← R05 ← {C022 ← R14 ← P013}, {C023 ← R15 ← P015}

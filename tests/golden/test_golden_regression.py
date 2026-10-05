@@ -27,7 +27,7 @@ def test_snapshot_invariants(templates_root: Path) -> None:
     snap = snapshot_for(templates_root, TEMPLATE_ID)
     assert snap["template_id"] == TEMPLATE_ID
     assert snap["root_state"] == "FALSE"                    # 最终结论 C001
-    assert len(snap["node_states"]) == 37                   # 全部业务码节点
+    assert len(snap["node_states"]) == 39                   # 全部业务码节点（1005 版）
     assert set(snap["node_states"].values()) <= {"TRUE", "FALSE", "UNKNOWN"}
     assert "UNKNOWN" not in snap["node_states"].values()    # 黄金样例全链路无缺失
     # 结果色仅来自 style 三色，未在代码里硬编码其它色

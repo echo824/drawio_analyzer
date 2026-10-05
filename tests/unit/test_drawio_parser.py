@@ -43,8 +43,8 @@ def model(parser: DrawioParser, flow_path: Path):  # noqa: ANN201
 
 # ── 真实模板结构 ──────────────────────────────────────────
 def test_counts_match_template(model) -> None:  # noqa: ANN001
-    assert len(model.nodes) == 37   # 顶点数
-    assert len(model.edges) == 42   # 连线数
+    assert len(model.nodes) == 39   # 顶点数（1005 版：含 P012/R12-3）
+    assert len(model.edges) == 44   # 连线数
 
 
 def test_code_map_contains_key_business_codes(model) -> None:  # noqa: ANN001

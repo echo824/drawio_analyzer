@@ -30,7 +30,7 @@ def test_real_template_validates_and_caches(templates_root: Path) -> None:
     m1 = mgr.get_model(TEMPLATE_ID)
     m2 = mgr.get_model(TEMPLATE_ID)
     assert m1 is m2                                        # 同一实例，避免重复解析
-    assert len(m1.code_map) == 37
+    assert len(m1.code_map) == 39
     assert mgr.validate_all()[TEMPLATE_ID].ok              # 仅告警，整体通过
 
 

@@ -92,7 +92,7 @@ def test_summary_dict_lists_states_colors_and_root(cfg, model, renderer, result)
     assert s["colors"]["C013"] == "#00B050"              # C 结论 TRUE→绿
     assert s["root_state"] == "FALSE"
     assert len(s["node_states"]) == len(model.code_map)      # 每个业务码都有三态
-    assert len(s["colors"]) == 24                            # 仅 P/C 入色
+    assert len(s["colors"]) == 25                            # 仅 P/C 入色
 
 
 # ── HTML：内嵌 draw.io viewer，转义负载可往返 ────────────────

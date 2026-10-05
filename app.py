@@ -31,7 +31,7 @@ TEMPLATES_ROOT = os.environ.get("TEMPLATES_ROOT", "templates")
 # 演示样例后缀 → 中文标签（模板目录里的 sample_request*.json）
 SAMPLE_LABELS = {
     "": "标准样例（黄金基准，根结论 FALSE）",
-    "_true": "全部达标（13 个 P 全真 → C001=TRUE）",
+    "_true": "全部达标（14 个 P 全真 → C001=TRUE）",
     "_missing": "参数缺失（部分省略 → 相关节点 UNKNOWN）",
     "_invalid": "非法输入（越界/非数值/非法布尔 → 不抛错判 UNKNOWN）",
     "_minimal": "极简空输入（全部 UNKNOWN）",

@@ -85,7 +85,7 @@ def test_colorize_patches_only_p_and_c(cfg, model, renderer, sample) -> None:  #
     r_codes = {c for c, k in kind_by_code.items() if k == "R"}
     # 仅 P/C 被着色（本样例全部有求值态）；R 不动
     assert patched == pc_codes
-    assert len(patches) == len(pc_codes) == 24
+    assert len(patches) == len(pc_codes) == 25
     assert not any(model.code_map[c] in patches for c in r_codes)
 
 

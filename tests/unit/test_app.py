@@ -136,7 +136,7 @@ def test_model_cache_reused(app_obj) -> None:  # noqa: ANN001
     m1 = mgr.get_model(TEMPLATE_ID)
     m2 = mgr.get_model(TEMPLATE_ID)
     assert m1 is m2                                          # 同一实例，避免重复解析
-    assert len(m1.code_map) == 37
+    assert len(m1.code_map) == 39
 
 
 # ── 演示入口：首页 / 与 /demo/<模板>[?sample=] ─────────────
