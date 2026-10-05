@@ -136,10 +136,9 @@ def _run_pipeline(mgr: TemplateManager, template_id: str, payload: dict) -> dict
 
     validator = InputValidator.from_config(cfg)
     nv = validator.validate_node_values(payload.get("node_values") or {})
-    basis, basis_issues = validator.validate_basis(payload.get("basis"))
     thresholds, thr_issues = validator.validate_thresholds(payload.get("thresholds"))
 
-    context = build_parameter_context(cfg, {"basis": basis, "thresholds": thresholds})
+    context = build_parameter_context(cfg, {"thresholds": thresholds})
     engine = RuleEngine(cfg.nodes, context)
     result = engine.evaluate(
         nv.values,
@@ -158,7 +157,7 @@ def _run_pipeline(mgr: TemplateManager, template_id: str, payload: dict) -> dict
         title=f"油井压裂评价结果 · {payload.get('well_id') or cfg.template_id}",
     )
 
-    all_issues = list(nv.issues) + list(basis_issues) + list(thr_issues)
+    all_issues = list(nv.issues) + list(thr_issues)
     return {
         "summary": out["summary"],
         "html": out["html"],

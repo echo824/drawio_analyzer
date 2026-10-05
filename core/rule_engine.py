@@ -2,7 +2,7 @@
 
 叶层职责：
   - 对每个 P，按 operands 逐项比较：左值取自"校验后的 node_values"（缺失=哨兵 None），
-    右值用 ParameterContext(ISSUE-1.2) 解析 threshold/expr/value；
+    右值为阈值占位符，由 ParameterContext 解析 threshold/value（已无表达式运算，右值阈值化）；
   - 任一操作数缺左值或缺右值 → 该子条件 = UNKNOWN；
   - 节点内多操作数按 logic(默认 AND / OR) 用 Kleene 强三值真值表合并，能短路优先短路（§4.4）。
 """
@@ -90,7 +90,7 @@ class RuleEngine:
         if left is None:                       # 缺失/非法（校验器哨兵）→ UNKNOWN
             return TriState.UNKNOWN
         right = self.context.resolve_rhs(operand)
-        if right is None:                      # 阈值/基准缺失 → UNKNOWN
+        if right is None:                      # 阈值缺失 → UNKNOWN
             return TriState.UNKNOWN
         return compare(left, operand.get("op", ""), right)
 

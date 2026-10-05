@@ -167,13 +167,11 @@ def test_unknown_node_flagged(validator: InputValidator) -> None:
     assert "R01" not in result.values
 
 
-# ── basis / thresholds 数值校验 ─────────────────────────
-def test_validate_thresholds_and_basis_numeric(validator: InputValidator) -> None:
+# ── thresholds 数值校验（basis 已随右值阈值化退役）───────
+def test_validate_thresholds_numeric(validator: InputValidator) -> None:
     thr, thr_issues = validator.validate_thresholds({"x13": 60, "x_bad": "abc"})
     assert thr["x13"] == 60
     assert thr["x_bad"] is None and thr_issues[0].kind == "type"
-    basis, _ = validator.validate_basis({"avg_water_cut": "55"})
-    assert basis["avg_water_cut"] == 55.0
 
 
 # ── strict 模式：required 缺失才抛 ──────────────────────

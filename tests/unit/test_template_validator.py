@@ -213,19 +213,31 @@ def test_v23_undefined_threshold_symbol() -> None:
     assert any(f.code == "V23" and "t_missing" in f.message for f in report.errors())
 
 
-def test_v23_undefined_symbol_inside_expr() -> None:
+def test_v23_all_operand_thresholds_checked() -> None:
+    model, cfg = _valid()
+    cfg.nodes["P001"] = _predicate(operands=[
+        {"name": "x", "op": ">", "threshold": "t1"},
+        {"name": "y", "op": "<", "threshold": "t_ghost"},
+    ])
+    report = validate(model, cfg)
+    assert any(f.code == "V23" and "t_ghost" in f.message for f in report.errors())
+    assert not any(f.code == "V23" and "t1" in f.message for f in report.errors())
+
+
+def test_v23_retired_expr_form_is_not_scanned() -> None:
+    """右值全面阈值化后 V23 只查 threshold 符号；残留 expr 形态不再抽取扫描。"""
     model, cfg = _valid()
     cfg.nodes["P001"] = _predicate(
         operands=[{"name": "x", "op": ">", "expr": "@avg_oil * k_undefined"}]
     )
     report = validate(model, cfg)
-    assert any(f.code == "V23" and "k_undefined" in f.message for f in report.errors())
+    assert not any(f.code == "V23" for f in report.findings)
 
 
 def test_v23_defined_symbols_pass() -> None:
     model, cfg = _valid()
     cfg.nodes["P001"] = _predicate(
-        operands=[{"name": "x", "op": ">", "expr": "@avg_oil * t1"}]  # t1 已定义, @avg_oil 属 basis
+        operands=[{"name": "x", "op": ">", "threshold": "t1"}]  # t1 已在夹具阈值表定义
     )
     report = validate(model, cfg)
     assert not any(f.code == "V23" for f in report.findings)
@@ -235,7 +247,7 @@ def test_v23_defined_symbols_pass() -> None:
 
 def test_v24_is_stub_returning_no_findings() -> None:
     model, cfg = _valid()
-    cfg.nodes["P001"] = _predicate(operands=[{"name": "x", "op": ">", "expr": "@undeclared_basis"}])
+    cfg.nodes["P001"] = _predicate(operands=[{"name": "x", "op": ">", "threshold": "t1"}])
     report = validate(model, cfg)
     assert "V24" not in codes(report)              # 暂不产出 V24
 

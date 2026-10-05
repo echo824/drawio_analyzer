@@ -39,7 +39,7 @@ class TemplateDescriptor(BaseModel):
 
 
 class PredicateOperand(BaseModel):
-    """P 节点的一个操作数：name + op + (threshold|expr|value)。"""
+    """P 节点的一个操作数：name + op + (threshold | value)。右值全面阈值化，已无 expr 形态。"""
 
     model_config = ConfigDict(extra="allow")
     name: str

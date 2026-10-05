@@ -3,17 +3,19 @@
 # 关键约定：
 #   - 以业务码(P/R/C编号)为唯一主键，绝不使用 mxCell.id 作锚点(随机 id 不稳定)。
 #   - type: predicate(P) | rule(R) | conclusion(C)
-#   - predicate: operands[] 各含 name(对应 parameters.yaml quantities) / op / threshold 或 expr；
+#   - predicate: operands[] 各含 name(对应 parameters.yaml quantities) / op / threshold 或 value(字面量)；
 #                节点内多操作数由 logic 合并(默认 AND)。
 #   - rule/conclusion: aggregate(默认 AND) + children[](引用业务码)。
-#   - 值回写(§4.6)按 operands[].name 定位到各比较运算符前插入 node_values[节点id].name。
+#   - 右值全部阈值化(2026-10 需求更新)：每个比较式的右值都是单一阈值占位符(threshold 符号)，
+#     其具体数值由外部算好后经 thresholds 传入；服务内不做任何表达式/@引用运算。
+#     渲染时把描述中的占位符替换为具体数值，括号（…）内的解释文字不做处理。
 #
 # 【待确认项处置(见 待确认项.md)】
 #   - A 聚合算子：按当前默认值确定；每个 R/C 均显式声明 aggregate，算子只在本文件配置、
 #     求值逻辑不写死，后期改算子仅需改此处 aggregate 字段(与代码解耦)。
 #   - B 阈值/常数：数值与写死常数全部外提到 parameters.yaml，本文件只引用符号名。
-#   - C 判据操作数/基准：比较左值(实测/派生)与右侧基准(区块/井网/全区平均)一律由外部传入
-#     (node_values / basis)；本文件仅声明比较式结构与默认比较方向，不做任何统计计算。
+#   - C 判据操作数/基准：比较左值(实测/派生)由 node_values 传入；右侧基准(区块/井网/全区平均)
+#     整体阈值化为 threshold 占位符(上线时=外部算好的具体数值)，本文件仅声明比较式结构与比较方向。
 
 meta:
   template: oil_fracturing_v1
@@ -36,17 +38,17 @@ P002:
     - { name: total_connected_thickness, op: ">", threshold: x1 }
 P003:
   type: predicate
-  # 周围油井产油量 > 区块平均产油量 * x_neighbor_factor
-  # C1: 比较左值 neighbor_avg_oil_daily 与右侧基准 block_avg_oil_daily 均由外部传入(node_values / basis)
+  # 周围油井产油量 > x_p003（= 区块平均产油量×系数，右值整体阈值化，外部算好传入）
   operands:
-    - { name: neighbor_avg_oil_daily, op: ">", expr: "@block_avg_oil_daily * x_neighbor_factor" }
+    - { name: neighbor_avg_oil_daily, op: ">", threshold: x_p003 }
 P005:
   type: predicate
   logic: OR                          # 原文"…或…"
+  # 右值全部阈值化：常数阈值 + 全区基准(x13-系列) + 井网基准，各为外部算好的单值
   operands:
     - { name: water_cut, op: "<", threshold: x13 }
-    # B8: Y 常数不再写死，外提为 parameters.yaml 的 x_p005_y(当前=8)；avg_water_cut 由 basis 外部传入
-    - { name: water_cut, op: "<", expr: "@avg_water_cut - x_p005_y" }
+    - { name: water_cut, op: "<", threshold: x_p005_region }
+    - { name: water_cut, op: "<", threshold: x_p005_net }
 P006:
   type: predicate
   operands:
@@ -54,33 +56,38 @@ P006:
 P007:
   type: predicate
   logic: OR
+  # 平均基准分支已阈值化：x_p007_region / x_p007_net = 系数×全区(井网)平均，外部算好传入
   operands:
     - { name: liquid_intensity, op: "<", threshold: x8 }
-    - { name: liquid_intensity, op: "<", expr: "x9 * @avg_liquid" }
+    - { name: liquid_intensity, op: "<", threshold: x_p007_region }
+    - { name: liquid_intensity, op: "<", threshold: x_p007_net }
 P008:
   type: predicate
   logic: OR
   operands:
     - { name: liquid_daily, op: "<", threshold: x6 }
-    - { name: liquid_daily, op: "<", expr: "x7 * @avg_liquid" }
+    - { name: liquid_daily, op: "<", threshold: x_p008_region }
+    - { name: liquid_daily, op: "<", threshold: x_p008_net }
 P009:
   type: predicate
   logic: OR
+  # C4: 基准分支阈值化，外部传入具体数值；未另加"周围油井均值"分支（已确认不新增）
   operands:
     - { name: oil_daily, op: "<", threshold: x10 }
-    - { name: oil_daily, op: "<", expr: "x11 * @avg_oil" }       # C4: 基准 avg_oil 外部传入；未另加"周围油井均值"分支（待如需再加）
+    - { name: oil_daily, op: "<", threshold: x_p009_region }
+    - { name: oil_daily, op: "<", threshold: x_p009_net }
 P010:
   type: predicate
-  # C2: 地层压力 > 区块平均地层压力(block_avg_pressure 由 basis 外部传入)
+  # C2: 地层压力 > x_p010_block（区块平均压力，右值阈值化，外部传入具体数值）
   operands:
-    - { name: formation_pressure, op: ">", expr: "@block_avg_pressure" }
+    - { name: formation_pressure, op: ">", threshold: x_p010_block }
 P011:
   type: predicate
   logic: OR
-  # C3: 流压 < 区块平均流压 或 动液面 > 区块平均动液面；基准均由 basis 外部传入
+  # C3: 流压 < x_p011_flow_block 或 动液面 > x_p011_inflow_block（区块基准阈值化，外部传入）
   operands:
-    - { name: flow_pressure,      op: "<", expr: "@block_avg_flow_pressure" }
-    - { name: inflow_performance, op: ">", expr: "@block_avg_inflow" }
+    - { name: flow_pressure,      op: "<", threshold: x_p011_flow_block }
+    - { name: inflow_performance, op: ">", threshold: x_p011_inflow_block }
 P013:
   type: predicate
   operands:

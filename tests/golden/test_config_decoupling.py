@@ -60,10 +60,10 @@ def test_rules_operator_flips_state(tmp_path: Path, templates_root: Path) -> Non
 
 def test_parameters_threshold_flips_state(tmp_path: Path, templates_root: Path) -> None:
     base = snapshot_for(templates_root, TEMPLATE_ID)
-    assert base["node_states"]["P003"] == "FALSE"                      # 9.0 > 6*1.5(=9) 不成立
+    assert base["node_states"]["P003"] == "FALSE"                      # 9.0 > x_p003(占位 9) 不成立
 
     def edit(params: dict) -> None:
-        params["thresholds"]["x_neighbor_factor"]["value"] = 1.0       # 6*1.0=6 → 9>6 成立
+        params["thresholds"]["x_p003"]["value"] = 8.0                  # 右值阈值化：改单值即翻态
 
     snap = snapshot_for(
         _mutated_root(templates_root, tmp_path, {"parameters.yaml": edit}), TEMPLATE_ID

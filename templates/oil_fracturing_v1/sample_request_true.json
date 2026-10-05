@@ -1,7 +1,7 @@
 {
   "template": "oil_fracturing_v1",
   "well_id": "W-TRUE",
-  "_comment": "全部达标示例：相对完整示例把 P003 由 9 提到 12(>区块均产油6*1.5=9)、P008 由 15 降到 8(<日产液阈值10)，其余叶子本已为真 → 13 个 P 全 TRUE，沿 R→C 拓扑聚合使根结论 C001=TRUE。node_values 仍用标量/数组按位置映射。",
+  "_comment": "全部达标示例：相对完整示例把 P003 提到 12(>右值阈值 x_p003=9)、P008 降到 8(<日产液阈值 x6=10，各平均基准分支同理不阻断)，其余叶子本就为真 → 13 个 P 全 TRUE，沿 R→C 拓扑聚合使根结论 C001=TRUE。右值全面阈值化：无 basis 段。node_values 仍用标量/数组按位置映射",
   "node_values": {
     "P001": [5, 12.3],
     "P002": 30,
@@ -16,15 +16,6 @@
     "P013": 3,
     "P015": 85,
     "P016": [110, false]
-  },
-  "basis": {
-    "avg_water_cut": 55,
-    "avg_liquid": 25,
-    "avg_oil": 6,
-    "block_avg_oil_daily": 6,
-    "block_avg_pressure": 16,
-    "block_avg_flow_pressure": 12,
-    "block_avg_inflow": 600
   },
   "thresholds": {
     "x3": 3,

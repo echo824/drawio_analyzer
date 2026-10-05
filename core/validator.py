@@ -71,7 +71,7 @@ def _to_number(raw: Any) -> int | float | None:
 
 
 class InputValidator:
-    """基于 quantities 语义字典校验 node_values/basis/thresholds。"""
+    """基于 quantities 语义字典校验 node_values/thresholds（basis 已随右值阈值化退役）。"""
 
     def __init__(
         self,
@@ -218,10 +218,7 @@ class InputValidator:
                 issues.append(ValidationIssue(location, issue.kind, issue.reason))
         return normalized
 
-    # ── 附加：basis / thresholds 的轻量数值校验 ───────────
-    def validate_basis(self, basis: dict[str, Any] | None) -> tuple[dict[str, Any], list[ValidationIssue]]:
-        return self._validate_numeric_map(basis or {}, scope="basis")
-
+    # ── 附加：thresholds 的轻量数值校验（basis 已退役）───
     def validate_thresholds(self, thresholds: dict[str, Any] | None) -> tuple[dict[str, Any], list[ValidationIssue]]:
         return self._validate_numeric_map(thresholds or {}, scope="thresholds")
 

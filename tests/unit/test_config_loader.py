@@ -20,9 +20,10 @@ def test_parsed_nodes_and_meta(templates_root: Path) -> None:
     assert cfg.nodes["P001"].type == "predicate"
     assert cfg.nodes["C001"].is_root is True
     assert cfg.rules_meta.default_aggregate == "AND"
-    # 参数与阈值可读
+    # 参数与阈值可读（右值全面阈值化：expr 塌缩后的单值占位符）
     assert "converted_thickness" in cfg.quantities
-    assert cfg.thresholds["x_p005_y"]["value"] == 8
+    assert cfg.thresholds["x_p003"]["value"] == 9
+    assert cfg.thresholds["x_p005_region"]["value"] == 47
 
 
 def test_node_code_pattern_from_template(templates_root: Path) -> None:

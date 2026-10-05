@@ -40,10 +40,9 @@ def run_bundle(root: Path, template_id: str, payload: dict[str, Any]) -> dict[st
 
     validator = InputValidator.from_config(cfg)
     nv = validator.validate_node_values(payload.get("node_values") or {})
-    basis, basis_issues = validator.validate_basis(payload.get("basis"))
     thresholds, thr_issues = validator.validate_thresholds(payload.get("thresholds"))
 
-    context = build_parameter_context(cfg, {"basis": basis, "thresholds": thresholds})
+    context = build_parameter_context(cfg, {"thresholds": thresholds})
     engine = RuleEngine(cfg.nodes, context)
     result = engine.evaluate(
         nv.values,
@@ -57,7 +56,7 @@ def run_bundle(root: Path, template_id: str, payload: dict[str, Any]) -> dict[st
     id_to_code = {v: k for k, v in model.code_map.items()}
     patches = renderer.annotate(cfg.nodes, nv.values, model)          # cell_id → 新 label
     annotations = {id_to_code[cid]: lab for cid, lab in patches.items() if cid in id_to_code}
-    all_issues = list(nv.issues) + list(basis_issues) + list(thr_issues)
+    all_issues = list(nv.issues) + list(thr_issues)
 
     return {
         "template_id": summary["template_id"],

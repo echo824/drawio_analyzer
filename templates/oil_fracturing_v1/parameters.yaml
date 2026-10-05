@@ -5,8 +5,10 @@
 # 标记约定：无服务内计算——所有量(含派生/聚合)均由外部传入，本文件仅定义语义/单位/范围供校验。
 #   【待确认项处置(见 待确认项.md)】
 #   - B 阈值：均保留占位默认值，与代码解耦——求值只引用符号名，后期改数值只改本文件。
-#   - D 派生量/数据来源：converted_thickness、oil_diff 及 avg_*/block_avg_* 等一律外部直传，
-#     本服务不做任何公式派生或统计聚合（对齐 §3 数据供给原则）。
+#   - D 派生量/数据来源：converted_thickness、oil_diff 等一律外部直传，本服务不做任何公式派生
+#     或统计聚合（对齐 §3 数据供给原则）。
+#   - R2 右值全面阈值化(2026-10)：原 basis 聚合基准(avg_*/block_avg_*)退役，各比较式右值
+#     收归为单一阈值符号(x_pXXX_*)；具体数值=外部(或上线现场)算好后经 thresholds 传入。
 
 meta:
   template: oil_fracturing_v1
@@ -14,8 +16,8 @@ meta:
   well_id_example: W001
 
 # ─────────────────────────────────────────────────────────────
-# 1) quantities —— 本井量/派生量/区域基准（语义字典，不含具体值）
-#    kind: measurement=本井实测 | derived=本井内派生(服务算) | aggregate=跨井统计(外部传入)
+# 1) quantities —— 本井量/派生量（语义字典，不含具体值）
+#    kind: measurement=本井实测 | aggregate=跨井统计口径(仍由外部按节点直传左值)
 # ─────────────────────────────────────────────────────────────
 quantities:
   reservoir_layers:
@@ -105,78 +107,44 @@ quantities:
     type: boolean
     description: 油层深度以上套管是否损坏（不严重=FALSE/严重=TRUE；布尔方向见 rules.yaml P016，值由外部传入）
 
-  # —— 区域/井网聚合基准：一律外部传入(§3.3 数据供给原则)，服务不统计 ——
-  avg_water_cut:
-    kind: aggregate
-    type: number
-    unit: "%"
-    provided_in: basis
-    description: 全区或井网平均含水率（D3：取全区/井网由外部决定后传入单值，服务不感知口径）
-  avg_liquid:
-    kind: aggregate
-    type: number
-    unit: "t"
-    provided_in: basis
-    description: 全区/井网平均产液量
-  avg_oil:
-    kind: aggregate
-    type: number
-    unit: "t"
-    provided_in: basis
-    description: 全区/井网平均产油量
+  # —— P003 左值：周围油井产油量平均值（跨井统计口径由外部算好后按节点直传）——
   neighbor_avg_oil_daily:
     kind: aggregate
     type: number
     unit: "t"
-    provided_in: basis
-    description: 周围油井产油量平均值
-  block_avg_oil_daily:
-    kind: aggregate
-    type: number
-    unit: "t"
-    provided_in: basis
-    description: 区块平均产油量
-  block_avg_pressure:
-    kind: aggregate
-    type: number
-    unit: "MPa"
-    provided_in: basis
-    description: 区块平均地层压力
-  block_avg_flow_pressure:
-    kind: aggregate
-    type: number
-    unit: "MPa"
-    provided_in: basis
-    description: 区块平均流压
-  block_avg_inflow:
-    kind: aggregate
-    type: number
-    unit: "m"
-    provided_in: basis
-    description: 区块平均动液面
+    description: 周围油井产油量平均值（作 P003 比较左值，经 node_values 传入）
 
 # ─────────────────────────────────────────────────────────────
-# 2) thresholds —— 常数阈值（描述内原写死数一律参数化）
-#    【B 处置】以下均为占位默认值，与代码解耦；真实值确定后只改本表，无需改逻辑。
-#    （P005 的 Y 常数已外提为 x_p005_y，不再写死在 rules.yaml）
+# 2) thresholds —— 右值阈值占位符（描述内原写死数/原表达式一律参数化）
+#    【B 处置】以下均为占位默认值，与代码解耦；上线时真实数值经请求 thresholds 覆盖。
+#    【R2 右值阈值化】x_pXXX_* 系列为原 expr 表达式(@基准×系数−Y)塌缩后的单值占位符，
+#    默认值按旧样例 basis 换算而来（如 x_p005_region=55−8=47），均为占位、待上线时外部给定。
+# ─────────────────────────────────────────────────────────────
 thresholds:
   x1:  { value: 5,   unit: "m" }    # B1 全井连通厚度阈值（占位 5m，待核实）
   x3:  { value: 3,   unit: "层" }   # 可压储层层数阈值
   x4:  { value: 5,   unit: "m" }    # 折算厚度阈值
   x6:  { value: 10,  unit: "t" }    # B2 日产液阈值（占位 10，待核实）
-  x7:  { value: 0.5, unit: "" }     # B2 日产液×全区/井网平均 系数（占位 0.5）
   x8:  { value: 2,   unit: "t/d.m" }# B3 产液强度阈值（占位 2，待核实）
-  x9:  { value: 0.8, unit: "" }     # B3 产液强度×平均 系数（占位 0.8）
   x10: { value: 3,   unit: "t" }    # B4 日产油阈值（占位 3，待核实）
-  x11: { value: 0.5, unit: "" }     # B4 日产油×平均 系数（占位 0.5）
   x12: { value: 10,  unit: "t" }    # B5 初期-目前日产油之差阈值（占位 10t）
   x13: { value: 70,  unit: "%" }    # P005 含水率常数阈值(非分段,见需求文档§3.4b)
   x20: { value: 2,   unit: "口" }   # B6 连通开井数阈值（占位 2口）
   x22: { value: 80,  unit: "%" }    # B7 配注完成率阈值（占位 80%）
-  x_p005_y:          { value: 8,   unit: "%" }   # B8 P005 表达式内 Y 常数（从 rules.yaml 写死 8 外提）
-  x_well_distance:   { value: 350, unit: "米" }   # 原 P013 文本内 "井距<350米"
-  x_neighbor_factor: { value: 1.5, unit: "" }     # 原 P003 文本内 "*1.5"
-  casing_min:        { value: 105, unit: "mm" }   # 原 P016 "通径>105mm"
+  casing_min: { value: 105, unit: "mm" }   # 原 P016 "通径>105mm"
+  # —— 右值表达式塌缩后的阈值占位符（上线时=外部算好的具体数值）——
+  x_p003:          { value: 9,   unit: "t" }     # P003：原 区块平均产油量×1.5（占位 6×1.5）
+  x_p005_region:   { value: 47,  unit: "%" }     # P005：原 全区平均含水−Y（占位 55−8）
+  x_p005_net:      { value: 45,  unit: "%" }     # P005：原 井网平均含水−Y（占位，待核实）
+  x_p007_region:   { value: 1.6, unit: "t/d.m" } # P007：原 x9×全区平均产液强度（占位 0.8×2）
+  x_p007_net:      { value: 1.5, unit: "t/d.m" } # P007：原 x9×井网平均（占位，待核实）
+  x_p008_region:   { value: 12.5, unit: "t" }    # P008：原 x7×全区平均日产液（占位 0.5×25）
+  x_p008_net:      { value: 12,  unit: "t" }     # P008：原 x7×井网平均（占位，待核实）
+  x_p009_region:   { value: 3,   unit: "t" }     # P009：原 x11×全区平均日产油（占位 0.5×6）
+  x_p009_net:      { value: 2.5, unit: "t" }     # P009：原 x11×井网平均（占位，待核实）
+  x_p010_block:    { value: 16,  unit: "MPa" }   # P010：原 区块平均地层压力
+  x_p011_flow_block:   { value: 12,  unit: "MPa" } # P011：原 区块平均流压
+  x_p011_inflow_block: { value: 600, unit: "m" }   # P011：原 区块平均动液面
 
 # ─────────────────────────────────────────────────────────────
 # 3) piecewise —— 备用形态，当前模板无节点使用（P005 已改常数比较）

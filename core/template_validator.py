@@ -19,7 +19,6 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .expr import extract_expr_symbols
 from .graph import find_cycle
 
 if TYPE_CHECKING:  # 仅类型注解，避免运行期耦合
@@ -236,7 +235,9 @@ class TemplateValidator:
 
     @staticmethod
     def _check_v23(ctx: _Ctx) -> list[Finding]:
-        """V23 表达式/threshold 引用的阈值在 parameters.yaml 定义（错误）。"""
+        """V23 threshold 引用的阈值符号在 parameters.yaml 定义（错误）。
+
+        右值全面阈值化后 operand 不再携带 expr，仅检查 threshold 符号。"""
         findings: list[Finding] = []
         for code, node in ctx.cfg.nodes.items():
             for operand in (getattr(node, "operands", None) or []):
@@ -277,13 +278,10 @@ class TemplateValidator:
 
 
 def _check_operand_symbols(code: str, operand: dict[str, Any], thresholds: set[str]) -> list[Finding]:
-    """单个 operand 的阈值符号引用检查（V23）。"""
+    """单个 operand 的阈值符号引用检查（V23）；右值阈值化后仅 threshold 一种符号形态。"""
     symbols: set[str] = set()
     if "threshold" in operand:
         symbols.add(str(operand["threshold"]))
-    if "expr" in operand:
-        plain, _refs = extract_expr_symbols(str(operand["expr"]))
-        symbols |= plain
     return [
         Finding("V23", Level.ERROR, f"节点 {code} 引用未定义阈值 {sym}", node=code)
         for sym in sorted(symbols - thresholds)

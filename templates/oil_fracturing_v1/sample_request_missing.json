@@ -1,19 +1,13 @@
 {
   "template": "oil_fracturing_v1",
   "well_id": "W-PARTIAL",
-  "_comment": "参数缺失示例：数组只填前若干位（位置在前），其余操作数省略 → 判 UNKNOWN、不回写；完全省略的节点(P003/P006 等)同样 UNKNOWN",
+  "_comment": "参数缺失示例：数组只填前若干位（位置在前），其余操作数省略 → 判 UNKNOWN、不回写；完全省略的节点(P003/P006 等)同样 UNKNOWN。右值阈值化后无 basis 段，基准类右值走 parameters.yaml 占位默认",
   "node_values": {
     "P001": [5],
     "P002": 30,
     "P005": 40,
     "P010": 18,
     "P016": [110]
-  },
-  "basis": {
-    "avg_water_cut": 55,
-    "avg_liquid": 25,
-    "avg_oil": 6,
-    "block_avg_pressure": 16
   },
   "thresholds": { "x3": 3, "x4": 5 }
 }

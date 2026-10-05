@@ -68,33 +68,41 @@ def test_merge_unsupported_logic_raises() -> None:
         merge([T], "WEIGHTED")
 
 
-# ── P005：water_cut<x13 OR water_cut<avg_water_cut-x_p005_y ──
+# ── P005：water_cut<x13 OR <x_p005_region OR <x_p005_net（右值全面阈值化）──
 def test_p005_true_via_shortcircuit(cfg) -> None:  # noqa: ANN001
-    # 40 < 70 → 第一判据 TRUE，OR 短路 → TRUE（无需 basis）
+    # 40 < 70 → 第一判据 TRUE，OR 短路 → TRUE
     engine = make_engine(cfg)
     assert engine.evaluate_predicate("P005", {"P005": {"water_cut": 40}}) == T
 
 
 def test_p005_false(cfg) -> None:  # noqa: ANN001
-    # 80<70 F；80 < (55-8=47) F → OR F,F = FALSE
-    engine = make_engine(cfg, {"basis": {"avg_water_cut": 55}})
+    # 80<70 F；80<47(全区占位) F；80<45(井网占位) F → OR F,F,F = FALSE
+    engine = make_engine(cfg)
     assert engine.evaluate_predicate("P005", {"P005": {"water_cut": 80}}) == F
 
 
-def test_p005_unknown_when_basis_missing(cfg) -> None:  # noqa: ANN001
-    # 第一判据 80<70 F；第二判据右值 @avg_water_cut 缺失 → UNKNOWN → OR F,U = UNKNOWN
-    engine = make_engine(cfg)  # 无 basis
+def test_p005_true_via_avg_branch(cfg) -> None:  # noqa: ANN001
+    # 覆盖后 60<50 F；但 60 < x_p005_region=65 → 第二判据 TRUE → OR 短路 TRUE
+    engine = make_engine(cfg, {"thresholds": {"x13": 50, "x_p005_region": 65}})
+    assert engine.evaluate_predicate("P005", {"P005": {"water_cut": 60}}) == T
+
+
+def test_p005_unknown_when_all_thresholds_missing(cfg) -> None:  # noqa: ANN001
+    # 右值阈值全部不可解析 → 各判据 UNKNOWN → OR = UNKNOWN
+    engine = make_engine(cfg, {
+        "thresholds": {"x13": "abc", "x_p005_region": "abc", "x_p005_net": "abc"},
+    })
     assert engine.evaluate_predicate("P005", {"P005": {"water_cut": 80}}) == U
 
 
 def test_p005_unknown_when_left_missing(cfg) -> None:  # noqa: ANN001
-    engine = make_engine(cfg, {"basis": {"avg_water_cut": 55}})
+    engine = make_engine(cfg)
     assert engine.evaluate_predicate("P005", {"P005": {"water_cut": None}}) == U
 
 
-# ── P010：formation_pressure > block_avg_pressure ────────
+# ── P010：formation_pressure > x_p010_block（区块基准阈值化）─────
 def test_p010_missing_formation_pressure_is_unknown(cfg) -> None:  # noqa: ANN001
-    engine = make_engine(cfg, {"basis": {"block_avg_pressure": 16}})
+    engine = make_engine(cfg)
     assert engine.evaluate_predicate("P010", {"P010": {"formation_pressure": None}}) == U
 
 
@@ -104,7 +112,7 @@ def test_p010_missing_node_entirely_is_unknown(cfg) -> None:  # noqa: ANN001
 
 
 def test_p010_true(cfg) -> None:  # noqa: ANN001
-    engine = make_engine(cfg, {"basis": {"block_avg_pressure": 16}})
+    engine = make_engine(cfg)   # x_p010_block 占位默认 16
     assert engine.evaluate_predicate("P010", {"P010": {"formation_pressure": 18}}) == T
 
 
@@ -149,7 +157,7 @@ def test_p001_and_missing_operand(cfg) -> None:  # noqa: ANN001
 
 # ── 批量与守卫 ──────────────────────────────────────────
 def test_evaluate_all_predicates_only_p_nodes(cfg) -> None:  # noqa: ANN001
-    engine = make_engine(cfg, {"basis": {"avg_water_cut": 55}})
+    engine = make_engine(cfg)
     states = engine.evaluate_all_predicates({})   # 全部缺输入
     assert set(states) == {c for c, n in cfg.nodes.items() if n.type == "predicate"}
     assert all(v == U for v in states.values())   # 无输入 → 全 UNKNOWN
@@ -163,5 +171,5 @@ def test_evaluate_predicate_rejects_non_predicate(cfg) -> None:  # noqa: ANN001
 
 # ── 直接构造 ParameterContext 冒烟 ──────────────────────
 def test_engine_with_explicit_context() -> None:
-    ctx = ParameterContext(symbols={"x13": 70}, basis={})
+    ctx = ParameterContext(symbols={"x13": 70})
     assert ctx.symbol("x13") == 70

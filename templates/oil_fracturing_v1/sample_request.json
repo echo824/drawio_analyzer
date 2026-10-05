@@ -1,7 +1,7 @@
 {
   "template": "oil_fracturing_v1",
   "well_id": "W001",
-  "_comment": "节点值=标量(单操作数) 或 数组(按 rules.yaml 去重后操作数顺序位置映射)。示例: P011=[flow_pressure, inflow_performance], P016=[casing_inner_diameter, casing_damage]",
+  "_comment": "节点值=标量(单操作数) 或 数组(按 rules.yaml 去重后操作数顺序位置映射)。示例: P011=[flow_pressure, inflow_performance], P016=[casing_inner_diameter, casing_damage]。右值全面阈值化：无 basis 段，各 x_pXXX_* 阈值由外部算好后经 thresholds 覆盖（此处沿用 parameters.yaml 占位默认）",
   "node_values": {
     "P001": [5, 12.3],
     "P002": 30,
@@ -16,15 +16,6 @@
     "P013": 3,
     "P015": 85,
     "P016": [110, false]
-  },
-  "basis": {
-    "avg_water_cut": 55,
-    "avg_liquid": 25,
-    "avg_oil": 6,
-    "block_avg_oil_daily": 6,
-    "block_avg_pressure": 16,
-    "block_avg_flow_pressure": 12,
-    "block_avg_inflow": 600
   },
   "thresholds": {
     "x3": 3,
