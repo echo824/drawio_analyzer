@@ -54,12 +54,31 @@ def test_toposort_self_loop(cfg) -> None:  # noqa: ANN001
 
 
 # ── 聚合算子（AND/OR/UNKNOWN 传播）─────────────────────
-def test_r11_or_any_low_is_inefficient(cfg) -> None:  # noqa: ANN001
-    # R11 = OR(P006,P007,P008,P009)：任一成立即真
+def test_r11_and_requires_all_low(cfg) -> None:  # noqa: ANN001
+    # 新规则（2026-10-05）：R 节点来源一律 AND → R11 = AND(P006..P009)
     engine = engine_for(cfg)
     states = engine.evaluate_states({"P006": {"oil_diff": 20}})   # 仅 P006 真，其余缺→UNKNOWN
     assert states["P006"] == T
-    assert states["R11"] == T                # OR 见 TRUE 短路
+    assert states["R11"] == U                # AND 见 UNKNOWN 不短路（无 FALSE 可短路）
+    # 四叶全真才 TRUE
+    states = engine.evaluate_states({
+        "P006": {"oil_diff": 20}, "P007": {"liquid_intensity": 1},
+        "P008": {"liquid_daily": 5}, "P009": {"oil_daily": 2},
+    })
+    assert states["R11"] == T
+    # 任一 FALSE 即短路假
+    assert engine._aggregate(cfg.nodes["R11"], [F, T, T, T]) == F
+
+
+def test_rc_aggregate_follows_new_business_rule(cfg) -> None:  # noqa: ANN001
+    """守护 2026-10-05 拍板规则：真实模板中所有 R 来源 AND、所有 C 来源 OR。"""
+    rules = {
+        code: getattr(node, "aggregate", None) or "AND"
+        for code, node in cfg.nodes.items()
+        if getattr(node, "type", None) in ("rule", "conclusion")
+    }
+    assert [c for c, a in rules.items() if c.startswith("R") and a.upper() != "AND"] == []
+    assert [c for c, a in rules.items() if c.startswith("C") and a.upper() != "OR"] == []
 
 
 def test_c020_or(cfg) -> None:  # noqa: ANN001
@@ -161,18 +180,20 @@ def test_golden_sample_full_snapshot(cfg, templates_root: Path) -> None:  # noqa
     assert all(s in (T, F) for s in states.values()), \
         {c: s.value for c, s in states.items() if s == U}
 
-    # 决定性快照（由 P003 判假沿拓扑传播至根）
+    # 决定性快照（新规则 R=AND/C=OR，2026-10-05）：
+    #   P008 假沿 R11(AND)→C019(OR透传)→R03(AND)→C012→R01→C001 传导至根；
+    #   P003 假仍在 R02-2(AND) 短路，但 C011=OR 见 R02-1 真即翻 TRUE。
     expected = {
         "P001": T, "P002": T, "P003": F, "P005": T, "P006": T, "P007": T,
         "P008": F, "P009": T, "P010": T, "P011": T, "P013": T, "P015": T, "P016": T,
-        "R11": T, "R12-1": T, "R12-2": T, "R19": T, "R06": T, "R10": T, "R14": T, "R15": T,
-        "R02-1": T, "R02-2": F, "C015": T, "C018": T, "C011": F, "C020": T,
-        "C019": T, "R03": T, "C012": T, "C013": T, "R05": T, "C022": T, "C023": T,
+        "R11": F, "R12-1": T, "R12-2": T, "R19": T, "R06": T, "R10": T, "R14": T, "R15": T,
+        "R02-1": T, "R02-2": F, "C015": T, "C018": T, "C011": T, "C020": T,
+        "C019": F, "R03": F, "C012": F, "C013": T, "R05": T, "C022": T, "C023": T,
         "C014": T, "R01": F, "C001": F,
     }
     for code, want in expected.items():
         assert states[code] == want, f"{code}: 期望 {want.value} 实得 {states[code].value}"
 
-    # 根结论 C001 = FALSE（P003 未达标所致）
+    # 根结论 C001 = FALSE（P008 未达标经 R 的 AND 链传导；C 的 OR 不能捞回单链假）
     result = engine.evaluate(nv, template_id=TEMPLATE_ID, well_id="W001")
     assert result.root_state == F

@@ -5,14 +5,16 @@
 #   - type: predicate(P) | rule(R) | conclusion(C)
 #   - predicate: operands[] 各含 name(对应 parameters.yaml quantities) / op / threshold 或 value(字面量)；
 #                节点内多操作数由 logic 合并(默认 AND)。
-#   - rule/conclusion: aggregate(默认 AND) + children[](引用业务码)。
+#   - rule/conclusion: aggregate + children[](引用业务码)。
+#     业务规则(2026-10-05 确认)：**所有 R(关系)节点来源一律 AND；所有 C(结论)节点来源一律 OR**；
+#     仍在每个 R/C 显式声明 aggregate 以便逐点审查，后期调整只改本文件。
 #   - 右值全部阈值化(2026-10 需求更新)：每个比较式的右值都是单一阈值占位符(threshold 符号)，
 #     其具体数值由外部算好后经 thresholds 传入；服务内不做任何表达式/@引用运算。
 #     渲染时把描述中的占位符替换为具体数值，括号（…）内的解释文字不做处理。
 #
 # 【待确认项处置(见 待确认项.md)】
-#   - A 聚合算子：按当前默认值确定；每个 R/C 均显式声明 aggregate，算子只在本文件配置、
-#     求值逻辑不写死，后期改算子仅需改此处 aggregate 字段(与代码解耦)。
+#   - A 聚合算子：按本文件头业务规则定档（R=AND / C=OR，2026-10-05 确认，覆盖旧 A1-A4 逐项默认）；
+#     算子只在本文件配置、求值逻辑不写死，后期改算子仅需改此处 aggregate 字段(与代码解耦)。
 #   - B 阈值/常数：数值与写死常数全部外提到 parameters.yaml，本文件只引用符号名。
 #   - C 判据操作数/基准：比较左值(实测/派生)由 node_values 传入；右侧基准(区块/井网/全区平均)
 #     整体阈值化为 threshold 占位符(上线时=外部算好的具体数值)，本文件仅声明比较式结构与比较方向。
@@ -20,7 +22,7 @@
 meta:
   template: oil_fracturing_v1
   rules_version: "2026.04"          # 规则版本(与模板版本独立, §8/§9)
-  default_aggregate: AND            # 需求 §2.3：全部满足才成立
+  default_aggregate: AND            # 未声明时的默认：P 节点 logic 默认 AND；R/C 均已显式声明(R=AND/C=OR)
   evaluation_order: bottom_up       # 自叶节点起沿依赖求值(§2.5)
 
 # ═════════════════════════════════════════════════════════════
@@ -138,7 +140,7 @@ R10:
   children: [P005]
 R11:
   type: rule
-  aggregate: OR                     # A1已确认：保持 OR(任一低即低效)；如需改 AND 只改本行
+  aggregate: AND                    # 新规则：R 节点来源一律 AND(四项产低同时成立)；覆盖旧 A1 的 OR 默认
   children: [P006, P007, P008, P009]
 R12-1:
   type: rule
@@ -163,51 +165,52 @@ R19:
 
 # ═════════════════════════════════════════════════════════════
 # C 节点（结论）—— 聚合上游; 根结论为 C001
+# 新规则(2026-10-05)：C 节点来源一律 OR（任一上游分支成立即成立）
 # ═════════════════════════════════════════════════════════════
 C001:
   type: conclusion
-  aggregate: AND
+  aggregate: OR                     # C 节点来源一律 OR（单子节点时等价透传）
   children: [R01]
   is_root: true
 C011:
   type: conclusion
-  aggregate: AND                    # 有油潜力: R02-1 且 R02-2
+  aggregate: OR                     # 有油潜力: R02-1 或 R02-2 任一成立
   children: [R02-1, R02-2]
 C012:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R03]
 C013:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R19]
 C014:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R05]
 C015:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R06]
 C018:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R10]
 C019:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R11]
 C020:
   type: conclusion
-  aggregate: OR                     # A3已确认：保持 OR(R12-1 或 R12-2 任一)；如需改 AND 只改本行
+  aggregate: OR                     # 新规则下仍为 OR(R12-1 或 R12-2 任一)
   children: [R12-1, R12-2]
 C022:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R14]
 C023:
   type: conclusion
-  aggregate: AND                    # 单子节点
+  aggregate: OR                     # 单子节点
   children: [R15]
 
 # ═════════════════════════════════════════════════════════════
