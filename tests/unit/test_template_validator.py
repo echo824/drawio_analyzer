@@ -108,14 +108,15 @@ def test_valid_block_has_no_findings() -> None:
     assert report.findings == []
 
 
-# ── V01 业务码唯一 ──────────────────────────────────────
+# ── V01 业务码唯一（纯图结构→降级告警）─────────────────
 
-def test_v01_duplicate_code_is_error() -> None:
+def test_v01_duplicate_code_is_nonblocking_warning() -> None:
     model, cfg = _valid()
     model.duplicate_codes = {"P001"}
     report = validate(model, cfg)
-    assert not report.ok
-    assert any(f.code == "V01" and f.node == "P001" for f in report.errors())
+    assert report.ok                              # 不阻断入缓（待确认项 G3）
+    assert any(f.code == "V01" and f.node == "P001" and f.level is Level.WARNING
+               for f in report.warnings())
 
 
 # ── V02 大小写归一 ──────────────────────────────────────
@@ -129,24 +130,25 @@ def test_v02_lowercase_code_is_warning() -> None:
     assert any(f.code == "V02" and f.level is Level.WARNING for f in report.findings)
 
 
-# ── V10 悬空边 ──────────────────────────────────────────
+# ── V10 悬空边（纯图结构→降级告警）─────────────────────
 
-def test_v10_missing_endpoint_is_error() -> None:
+def test_v10_dangling_edge_is_nonblocking_warning() -> None:
     model, cfg = _valid()
     model.edges.append(_edge("e_dangling", None, "n2"))
     report = validate(model, cfg)
-    assert not report.ok
-    assert any(f.code == "V10" and f.node == "e_dangling" for f in report.errors())
+    assert report.ok                              # 不阻断入缓（待确认项 G3）
+    hit = [f for f in report.warnings() if f.code == "V10" and f.node == "e_dangling"]
+    assert hit and "不阻断入缓" in hit[0].message
 
 
-# ── V11 端点指向存在节点 ────────────────────────────────
+# ── V11 端点指向存在节点（纯图结构→降级告警）───────────
 
-def test_v11_endpoint_points_to_missing_node() -> None:
+def test_v11_endpoint_to_missing_node_is_nonblocking_warning() -> None:
     model, cfg = _valid()
     model.edges[0] = _edge("e1", "n1", "ghost")   # ghost 不存在
     report = validate(model, cfg)
-    assert not report.ok
-    assert any(f.code == "V11" for f in report.errors())
+    assert report.ok                              # 不阻断入缓（待确认项 G3）
+    assert any(f.code == "V11" and f.level is Level.WARNING for f in report.warnings())
 
 
 # ── V12 依赖无环 ────────────────────────────────────────
@@ -250,6 +252,7 @@ def test_real_template_detects_known_dangling_edges(templates_root: Path) -> Non
         "ukcuZfHQnJ5xVRSnUBC_-74", "ukcuZfHQnJ5xVRSnUBC_-86", "ukcuZfHQnJ5xVRSnUBC_-75",
         "ukcuZfHQnJ5xVRSnUBC_-77", "ukcuZfHQnJ5xVRSnUBC_-91",
     }
-    assert not report.ok                           # 悬空边为错误级
+    assert report.ok                               # 悬空边已降级为告警，不阻断入缓（G3）
     # 一致性/拓扑/阈值类不应误报
     assert codes(report) == {"V10", "V02"}
+    assert all(f.level is Level.WARNING for f in report.findings)

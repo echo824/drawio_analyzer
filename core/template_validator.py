@@ -6,6 +6,10 @@
 本模块**一次收集全部 Finding**（不 fail-fast），便于坏模板一次性报出所有问题。
 当前覆盖：V01/V02（业务码）、V10/V11/V12/V13（拓扑连线）、V20/V21/V22/V23（一致性）；
 V24（基准声明表）按待确认项 G1 暂缓，仅留接口位；V30/V31（安全）见 commit C。
+
+**入缓严重度策略（待确认项 G3）**：规则求解只依赖 `cfg.nodes` 的 children 依赖图，
+`.drawio` 连线仅服务渲染；故纯图结构缺陷（V01/V10/V11/V13）降级为告警、不阻断入缓，
+触及规则/参数一致性的（V12/V20/V21/V22/V23）保持 ERROR 阻断。
 """
 from __future__ import annotations
 
@@ -52,6 +56,17 @@ class ValidationReport:
 # V02：严格大写业务码（大小写归一由解析器负责，此处识别原始小写 → 告警）
 _STRICT_CODE = re.compile(r"^[PRC]\d+(?:-\d+)?\b")
 _LOOSE_CODE = re.compile(r"^[pPrRcC]\d+(?:-\d+)?\b")
+
+# 纯图结构类缺陷：只影响 drawio 渲染，不参与规则求解（求解依赖 cfg.nodes.children）。
+# 按入缓策略（待确认项 G3）降级为非阻断告警。
+_NONBLOCKING_GRAPH_CODES = frozenset({"V01", "V10", "V11", "V13"})
+
+
+def _graph_finding(code: str, message: str, node: str | None = None) -> Finding:
+    """纯图结构类检出的构造器：命中容错集则降为告警并附说明（待确认项 G3）。"""
+    if code in _NONBLOCKING_GRAPH_CODES:
+        return Finding(code, Level.WARNING, f"{message}（纯图结构缺陷，仅影响渲染，不阻断入缓）", node=node)
+    return Finding(code, Level.ERROR, message, node=node)
 
 
 @dataclass(slots=True)
@@ -108,7 +123,7 @@ class TemplateValidator:
     def _check_v01(ctx: _Ctx) -> list[Finding]:
         """V01 业务码唯一（错误）。"""
         return [
-            Finding("V01", Level.ERROR, f"业务码 {code} 重复：同码对应多个节点", node=code)
+            _graph_finding("V01", f"业务码 {code} 重复：同码对应多个节点", node=code)
             for code in sorted(ctx.model.duplicate_codes)
         ]
 
@@ -132,8 +147,8 @@ class TemplateValidator:
     def _check_v10(ctx: _Ctx) -> list[Finding]:
         """V10 连线必须同时有 source 与 target（错误）。"""
         return [
-            Finding("V10", Level.ERROR, f"连线 {edge.cell_id} 缺少 {'source' if not edge.source else 'target'}",
-                    node=edge.cell_id)
+            _graph_finding("V10", f"连线 {edge.cell_id} 缺少 {'source' if not edge.source else 'target'}",
+                           node=edge.cell_id)
             for edge in ctx.model.dangling_edges()
         ]
 
@@ -146,8 +161,8 @@ class TemplateValidator:
                 ref = getattr(edge, role)
                 if ref and ref not in ctx.node_ids:
                     findings.append(
-                        Finding("V11", Level.ERROR, f"连线 {edge.cell_id} 的 {role}={ref} 指向不存在的节点",
-                                node=edge.cell_id)
+                        _graph_finding("V11", f"连线 {edge.cell_id} 的 {role}={ref} 指向不存在的节点",
+                                       node=edge.cell_id)
                     )
         return findings
 
