@@ -98,7 +98,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 {
   "template_id": "oil_fracturing_v1",
   "well_id": "W001",
-  "rules_version": "2026.04",
+  "rules_version": "2026.05",
   "root_state": "FALSE",                 // 最终结论（根节点 C001）
   "node_states": { "P001": "TRUE", "P003": "FALSE", "R06": "TRUE", "C001": "FALSE", "...": "..." },
   "colors":      { "P001": "#00B050", "C001": "#FF0000", "...": "..." },  // 仅 P/C 着色，R 不列入

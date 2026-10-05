@@ -21,7 +21,10 @@
 
 meta:
   template: oil_fracturing_v1
-  rules_version: "2026.04"          # 规则版本(与模板版本独立, §8/§9)
+  rules_version: "2026.05"          # 规则版本(与模板版本独立, §8/§9)
+  # bump 规则（2026-10-05 F2 拍板）：加/删节点、改聚合算子等结构变更必 bump（日期式 YYYY.MM）；
+  # 阈值真值、渲染样式变更不 bump。2026.05 = 覆盖当日结构变更批次（聚合新规 R=AND/C=OR、
+  # 1005 版增 P012/R12-3、修订版 P011 删分支）；此前 2026.04 为旧结构基线。
   default_aggregate: AND            # 未声明时的默认：P 节点 logic 默认 AND；R/C 均已显式声明(R=AND/C=OR)
   evaluation_order: bottom_up       # 自叶节点起沿依赖求值(§2.5)
 
