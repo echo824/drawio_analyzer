@@ -21,6 +21,7 @@ from flask import Flask, Response, jsonify, request
 
 from config_loader import ConfigError, TemplateNotFoundError
 from core.expr import build_parameter_context
+from core.inspector import DEFAULT_CODE_PATTERN, inspect_file
 from core.renderer import Renderer
 from core.rule_engine import RuleEngine
 from core.template_manager import TemplateManager
@@ -72,6 +73,21 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
             }
         )
 
+    # ── 模板检视（只读，无需注册）：任意 .drawio 解析+结构体检 ──
+    @app.post("/api/v1/templates/inspect")
+    def inspect_template():  # noqa: ANN202
+        payload = request.get_json(silent=True) or {}
+        raw_path = payload.get("path")
+        if not raw_path:
+            return jsonify({"error": "invalid_request", "message": "缺少 'path' 字段"}), 400
+        p = Path(raw_path)
+        if p.suffix.lower() != ".drawio":
+            return jsonify({"error": "invalid_file", "detail": "仅支持 .drawio 文件"}), 400
+        if not p.is_file():
+            return jsonify({"error": "file_not_found", "detail": str(p)}), 404
+        report = inspect_file(p, payload.get("pattern") or DEFAULT_CODE_PATTERN)
+        return jsonify(report.to_dict()), (200 if report.parse_error is None else 422)
+
     # ── 评价接口：解析→校验→求值→渲染（需求 §9）─────────
     @app.post("/api/v1/evaluate")
     def evaluate():  # noqa: ANN202
@@ -118,6 +134,7 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
             "<h1>油井压裂评价微服务</h1><h2>接口</h2><ul>"
             "<li><code>GET /health</code> 健康检查</li>"
             "<li><code>GET /api/v1/templates</code> 模板清单</li>"
+            "<li><code>POST /api/v1/templates/inspect</code> 检视任意 .drawio（只读，无需注册）</li>"
             "<li><code>POST /api/v1/evaluate</code> 评价（默认 HTML，可 ?result=json）</li>"
             "</ul><h2>演示（模板自带多样例，均直出全链路评价图）</h2>"
             f"<ul>{links}</ul></body></html>"
