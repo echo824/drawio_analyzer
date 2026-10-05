@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 
 from app import create_app
-from core.inspector import inspect_file, main
+from core.drawio_parser import DrawioParser
+from core.inspector import DEFAULT_CODE_PATTERN, inspect_file, main
 
 TEMPLATE_ID = "oil_fracturing_v1"
 
@@ -61,6 +63,18 @@ def test_inspect_parse_failure_no_raise(tmp_path: Path) -> None:
     r = inspect_file(broken)
     assert not r.ok and r.parse_error
     assert r.summary().startswith("✗")
+
+
+# ── 上线模拟版 fixture（右值已全数值化）────────────────
+def test_inspect_live_sim_fixture() -> None:
+    fx = Path(__file__).resolve().parent.parent / "fixtures" / "flow_live_sim_20261005.drawio"
+    r = inspect_file(fx)
+    assert r.ok and r.parse_error is None
+    assert (r.node_count, r.edge_count, r.business_count) == (39, 44, 39)
+    assert r.duplicate_codes == [] and len(r.dangling_edges) == 5
+    # 上线形态：节点文本层不应再残留任何 x 阈值符号（x7/x9/x11 也已随右值整体数值化移除）
+    vals = " ".join(n.label for n in DrawioParser(DEFAULT_CODE_PATTERN).parse(fx).nodes)
+    assert not re.search(r"(?<![A-Za-z])x\d+(?!\d)", vals)
 
 
 # ── CLI ─────────────────────────────────────────────────
