@@ -4,14 +4,17 @@
   - 应用工厂 + /health 健康检查
   - 启动时通过 TemplateManager 加载/结构校验/缓存解析 templates/ 下的所有模板
   - /api/v1/evaluate：解析→校验→求值→渲染 端到端（默认 HTML，可 result=json 返回结构化三态）
+  - / 与 /demo/<模板>：浏览器可直接访问的演示入口（用模板自带 sample_request 跑全链路）
 
 运行：
     flask --app app run  或  python app.py
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
+import re
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request
@@ -24,6 +27,15 @@ from core.template_manager import TemplateManager
 from core.validator import InputValidator
 
 TEMPLATES_ROOT = os.environ.get("TEMPLATES_ROOT", "templates")
+
+# 演示样例后缀 → 中文标签（模板目录里的 sample_request*.json）
+SAMPLE_LABELS = {
+    "": "标准样例（黄金基准，根结论 FALSE）",
+    "_true": "全部达标（13 个 P 全真 → C001=TRUE）",
+    "_missing": "参数缺失（部分省略 → 相关节点 UNKNOWN）",
+    "_invalid": "非法输入（越界/非数值/非法布尔 → 不抛错判 UNKNOWN）",
+    "_minimal": "极简空输入（全部 UNKNOWN）",
+}
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("oil_fracturing")
@@ -82,6 +94,53 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
                 "validation": {"ok": data["ok"], "issues": data["issues"]},
             }
             return jsonify(body), 200
+        return Response(data["html"], mimetype="text/html"), 200
+
+    # ── 首页：服务说明 + 演示入口（浏览器 GET 可达，免 404）────
+    @app.get("/")
+    def index():  # noqa: ANN202
+        mgr = app.config["MANAGER"]
+        rows: list[str] = []
+        for cfg in mgr.registry.values():
+            for p in sorted(cfg.path.glob("sample_request*.json")):
+                suffix = p.stem[len("sample_request"):]
+                label = SAMPLE_LABELS.get(suffix, f"样例{suffix}")
+                query = f"?sample={suffix}" if suffix else ""
+                rows.append(
+                    f'<li><a href="/demo/{cfg.template_id}{query}">'
+                    f"{cfg.template_id} · {label}</a></li>"
+                )
+        links = "".join(rows) or "<li>无可用样例</li>"
+        return (
+            '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+            "<title>油井压裂评价微服务</title></head>"
+            "<body style=\"font-family:'Microsoft YaHei',Arial,sans-serif;padding:32px\">"
+            "<h1>油井压裂评价微服务</h1><h2>接口</h2><ul>"
+            "<li><code>GET /health</code> 健康检查</li>"
+            "<li><code>GET /api/v1/templates</code> 模板清单</li>"
+            "<li><code>POST /api/v1/evaluate</code> 评价（默认 HTML，可 ?result=json）</li>"
+            "</ul><h2>演示（模板自带多样例，均直出全链路评价图）</h2>"
+            f"<ul>{links}</ul></body></html>"
+        ), 200
+
+    # ── 演示：按模板样例 GET 直出评价 HTML（供浏览器/验收）──
+    # ?sample= 接后缀（_true/_missing/_invalid/_minimal），缺省为标准样例
+    @app.get("/demo/<template_id>")
+    def demo(template_id: str):  # noqa: ANN202
+        mgr = app.config["MANAGER"]
+        if template_id not in mgr.registry:
+            raise TemplateNotFoundError(template_id)
+        suffix = (request.args.get("sample") or "").strip()
+        if suffix and not re.fullmatch(r"_[A-Za-z0-9]+", suffix):
+            return jsonify({"error": "invalid_sample", "detail": suffix}), 400
+        cfg = mgr.get(template_id)
+        sample = cfg.path / f"sample_request{suffix}.json"
+        if not sample.exists():
+            available = sorted(p.name for p in cfg.path.glob("sample_request*.json"))
+            return jsonify({"error": "sample_not_found", "detail": str(sample),
+                            "available": available}), 404
+        payload = json.loads(sample.read_text(encoding="utf-8"))
+        data = _run_pipeline(mgr, template_id, payload)
         return Response(data["html"], mimetype="text/html"), 200
 
     # ── 统一异常处理 ────────────────────────────────────────
