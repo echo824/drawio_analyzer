@@ -4,8 +4,8 @@
 任一错误级不通过 → 模板不入缓存、保留上一份有效模板、返回明确错误（§7.5）。
 
 本模块**一次收集全部 Finding**（不 fail-fast），便于坏模板一次性报出所有问题。
-当前覆盖：V01/V02（业务码）、V10/V11/V12/V13（拓扑连线）、V20/V21/V22/V23（一致性）；
-V24（基准声明表）按待确认项 G1 暂缓，仅留接口位；V30/V31（安全）见 commit C。
+当前覆盖：V01/V02（业务码）、V10/V11/V12/V13（拓扑连线）、V20/V21/V22/V23（一致性）、
+V30/V31（安全）；V24（基准声明表）按待确认项 G1 暂缓，仅留接口位。
 
 **入缓严重度策略（待确认项 G3）**：规则求解只依赖 `cfg.nodes` 的 children 依赖图，
 `.drawio` 连线仅服务渲染；故纯图结构缺陷（V01/V10/V11/V13）降级为告警、不阻断入缓，
@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .expr import extract_expr_symbols
@@ -57,6 +58,12 @@ class ValidationReport:
 _STRICT_CODE = re.compile(r"^[PRC]\d+(?:-\d+)?\b")
 _LOOSE_CODE = re.compile(r"^[pPrRcC]\d+(?:-\d+)?\b")
 
+# V30/V31 安全：对原始 flow.drawio 文本的正则扫描（defusedxml 已在解析期拦截实体展开，
+# 此处作为显式校验码补捕：V30 裸 DOCTYPE/ENTITY→ERROR；V31 压缩 diagram→WARNING）。
+_FLOW_FILENAME = "flow.drawio"
+_XXE_RE = re.compile(r"<!\s*(?:DOCTYPE|ENTITY)", re.IGNORECASE)
+_COMPRESSED_RE = re.compile(r"<diagram\b[^>]*>\s*[A-Za-z0-9+/=]{16,}\s*</diagram>")
+
 # 纯图结构类缺陷：只影响 drawio 渲染，不参与规则求解（求解依赖 cfg.nodes.children）。
 # 按入缓策略（待确认项 G3）降级为非阻断告警。
 _NONBLOCKING_GRAPH_CODES = frozenset({"V01", "V10", "V11", "V13"})
@@ -80,6 +87,7 @@ class _Ctx:
     rule_codes: set[str]               # rules.yaml 声明的业务码
     thresholds: set[str]               # parameters.yaml 阈值符号
     connected: set[str]                # 被任一边连接的顶点 id
+    source: str | None = None          # 原始 flow.drawio 文本（供 V30/V31；无文件则 None）
 
 
 class TemplateValidator:
@@ -93,6 +101,7 @@ class TemplateValidator:
             self._check_v10, self._check_v11, self._check_v12, self._check_v13,
             self._check_v20, self._check_v21, self._check_v22, self._check_v23,
             self._check_v24,
+            self._check_v30, self._check_v31,
         )
         for check in checks:
             report.findings.extend(check(ctx))
@@ -116,7 +125,19 @@ class TemplateValidator:
             rule_codes=set(cfg.nodes),
             thresholds=set(cfg.thresholds),
             connected=connected,
+            source=TemplateValidator._read_flow_source(cfg),
         )
+
+    @staticmethod
+    def _read_flow_source(cfg: Any) -> str | None:
+        """读原始 flow.drawio 文本供 V30/V31 扫描；cfg 无 path（合成测试）或读失败 → None。"""
+        base = getattr(cfg, "path", None)
+        if base is None:
+            return None
+        try:
+            return (Path(base) / _FLOW_FILENAME).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
 
     # ── 业务码类 ──────────────────────────────────────────
     @staticmethod
@@ -229,6 +250,29 @@ class TemplateValidator:
         TODO(ISSUE-2.x/V24)：待确认项 G1 暂缓——尚无静态“基准声明表”来源，
         保留接口位返回空；确定声明源后再实现 @引用与 Schema 的比对。
         """
+        return []
+
+    # ── 安全类 ────────────────────────────────────────────
+    @staticmethod
+    def _check_v30(ctx: _Ctx) -> list[Finding]:
+        """V30 XXE/DTD 安全（错误）。
+
+        defusedxml 已在解析期硬性拦截实体展开；此处对原始文本补捕裸 DOCTYPE/ENTITY
+        声明（解析器容忍但不应入缓的情形），命中即 ERROR、阻断入缓。
+        """
+        if ctx.source and _XXE_RE.search(ctx.source):
+            return [Finding("V30", Level.ERROR, "检测到 DTD/实体声明（XXE 风险），拒绝入缓")]
+        return []
+
+    @staticmethod
+    def _check_v31(ctx: _Ctx) -> list[Finding]:
+        """V31 压缩/非明文 diagram（告警，不阻断——待确认项 G2）。
+
+        仅针对“已解析出明文模型、但夹带压缩 diagram”的可恢复情形；若整份压缩
+        导致无模型可解析，解析阶段已抛 DrawioParseError，由管理器按拒绝入缓处理。
+        """
+        if ctx.source and _COMPRESSED_RE.search(ctx.source):
+            return [Finding("V31", Level.WARNING, "检测到压缩/非明文 diagram，建议在 draw.io 取消压缩后另存")]
         return []
 
 

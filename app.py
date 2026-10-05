@@ -97,7 +97,11 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
 
 
 def _init_manager(app: Flask) -> None:
-    """启动时构建 TemplateManager（加载 + 结构校验）。失败即记录并中断（fail-fast）。"""
+    """启动时构建 TemplateManager（加载 + 结构校验）。失败即记录并中断（fail-fast）。
+
+    随后对每个模板做一次 §7 一致性预校验并记录日志（先校验后入缓的巡检；
+    错误级模板不阻断其它模板加载，仅在其被请求时由 get_model 抛 422）。
+    """
     root = Path(app.config["TEMPLATES_ROOT"])
     try:
         mgr = TemplateManager(root)
@@ -106,6 +110,20 @@ def _init_manager(app: Flask) -> None:
         raise
     app.config["MANAGER"] = mgr
     logger.info("已加载 %d 个模板: %s", len(mgr.registry), ", ".join(mgr.registry))
+    _log_validation(mgr)
+
+
+def _log_validation(mgr: TemplateManager) -> None:
+    """记录各模板的校验结果：错误级→error 日志（请求时拒绝入缓）；告警仅提示。"""
+    for template_id, report in mgr.validate_all().items():
+        if not report.ok:
+            problems = "; ".join(f"{f.code}:{f.message}" for f in report.errors())
+            logger.error("模板 %s 未通过校验（请求时将拒绝入缓）: %s", template_id, problems)
+        else:
+            warnings = "; ".join(f"{f.code}:{f.message}" for f in report.warnings())
+            logger.info(
+                "模板 %s 校验通过%s", template_id, f"（告警: {warnings}）" if warnings else ""
+            )
 
 
 def _run_pipeline(mgr: TemplateManager, template_id: str, payload: dict) -> dict:

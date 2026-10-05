@@ -240,6 +240,34 @@ def test_v24_is_stub_returning_no_findings() -> None:
     assert "V24" not in codes(report)              # 暂不产出 V24
 
 
+# ── V30/V31 安全（读原始 flow.drawio 文本）───────────
+
+def test_v30_xxe_declaration_is_error(tmp_path: Path) -> None:
+    model, cfg = _valid()
+    cfg.path = tmp_path                            # 合成 cfg 补上 path
+    (tmp_path / "flow.drawio").write_text('<!DOCTYPE mxfile>\n<mxfile/>', encoding="utf-8")
+    report = validate(model, cfg)
+    assert not report.ok                           # 安全类为错误级，不降级
+    assert any(f.code == "V30" and f.level is Level.ERROR for f in report.errors())
+
+
+def test_v31_compressed_diagram_is_warning(tmp_path: Path) -> None:
+    model, cfg = _valid()
+    cfg.path = tmp_path
+    (tmp_path / "flow.drawio").write_text(
+        '<mxfile><diagram id="a">YWJjZGVmZ2hpamtsbW5vcA==</diagram></mxfile>', encoding="utf-8"
+    )
+    report = validate(model, cfg)
+    assert report.ok                               # V31 仅告警（待确认项 G2）
+    assert any(f.code == "V31" and f.level is Level.WARNING for f in report.warnings())
+
+
+def test_security_checks_skipped_without_path() -> None:
+    model, cfg = _valid()                          # 合成 cfg 无 path → 不读文件
+    report = validate(model, cfg)
+    assert "V30" not in codes(report) and "V31" not in codes(report)
+
+
 # ── 真实模板回归快照：已知缺陷必须被检出 ────────────────
 
 def test_real_template_detects_known_dangling_edges(templates_root: Path) -> None:
