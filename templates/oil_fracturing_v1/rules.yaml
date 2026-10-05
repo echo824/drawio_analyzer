@@ -85,14 +85,13 @@ P010:
     - { name: formation_pressure, op: ">", threshold: x_p010_block }
 P011:
   type: predicate
-  logic: OR
-  # C3: 流压 < x_p011_flow_block 或 动液面 > x_p011_inflow_block（区块基准阈值化，外部传入）
+  # C3（1005 修订版）：图方删去"或动液面大于区块平均值"分支，仅保留流压 < x_p011_flow_block；
+  # 动液面 > 区块平均改由 P012（经 R12-3）独立承担，消除与 P011 的重复建模。
   operands:
-    - { name: flow_pressure,      op: "<", threshold: x_p011_flow_block }
-    - { name: inflow_performance, op: ">", threshold: x_p011_inflow_block }
+    - { name: flow_pressure, op: "<", threshold: x_p011_flow_block }
 P012:
   type: predicate
-  # 1005 版接入："动液面大于区块平均值"——独立参与 C020（经 R12-3）；左值与 P011 第二分支同量
+  # 1005 版接入："动液面大于区块平均值"——独立参与 C020（经 R12-3）；1005 修订版后该口径仅此处出现
   operands:
     - { name: inflow_performance, op: ">", threshold: x_p012_block }
 P013:

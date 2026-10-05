@@ -4,7 +4,7 @@
 `{节点ID: {操作数name: 值 | None}}`，并逐项校验类型/范围。节点值支持三种形式：
   - **标量**：该节点仅 1 个操作数时（如 `"P002": 30`）；
   - **数组（推荐契约）**：按 `rules.yaml` 去重后的操作数顺序**位置映射**
-    （如 `"P011": [10, 500]` → flow_pressure/inflow_performance）；
+    （如 `"P001": [5, 12.3]` → reservoir_layers/converted_thickness）；
   - **映射**：按操作数 name 取值（兼容旧格式）。
 合法（含可安全强制的类型）→ 归一值；越界 / 类型不符 / 缺失 / 未知操作数 →
 置哨兵 None 并记录 issue（**不抛错**），交由求值层判 UNKNOWN，与 FALSE 严格区分。

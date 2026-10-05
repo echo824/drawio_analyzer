@@ -32,7 +32,7 @@ def test_default_symbols_from_parameters(cfg) -> None:  # noqa: ANN001
     # 右值表达式塌缩后的阈值占位符（上线时经 thresholds 覆盖为真实数值）
     assert ctx.symbol("x_p003") == 9
     assert ctx.symbol("x_p005_region") == 47
-    assert ctx.symbol("x_p011_inflow_block") == 600
+    assert ctx.symbol("x_p012_block") == 600
     assert ctx.symbol("no_such_symbol") is None
 
 

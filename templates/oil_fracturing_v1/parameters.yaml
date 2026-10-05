@@ -144,8 +144,7 @@ thresholds:
   x_p009_net:      { value: 2.5, unit: "t" }     # P009：原 x11×井网平均（占位，待核实）
   x_p010_block:    { value: 16,  unit: "MPa" }   # P010：原 区块平均地层压力
   x_p011_flow_block:   { value: 12,  unit: "MPa" } # P011：原 区块平均流压
-  x_p011_inflow_block: { value: 600, unit: "m" }   # P011：原 区块平均动液面
-  x_p012_block:        { value: 600, unit: "m" }   # P012：区块平均动液面（1005 版接入，占位同 P011 口径，待核实）
+  x_p012_block:        { value: 600, unit: "m" }   # P012：区块平均动液面（1005 版接入，占位待核实；原 x_p011_inflow_block 同口径符号已随 P011 分支删除退役）
 
 # ─────────────────────────────────────────────────────────────
 # 3) piecewise —— 备用形态，当前模板无节点使用（P005 已改常数比较）

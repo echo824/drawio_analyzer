@@ -179,10 +179,10 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | `P002` | `total_connected_thickness` → `30`（标量） |
 | `P003` | `neighbor_avg_oil_daily` → `9.0`（标量；右值 `block_avg_oil_daily` 走 `basis`） |
 | `P005` | `water_cut` → `40`（标量；两个比较共用同一实测值） |
-| `P011` | `[flow_pressure, inflow_performance]` → `[10, 500]` |
+| `P011` | `flow_pressure` → `10`（标量；1005 修订版删动液面分支，改由 P012 承担） |
 | `P016` | `[casing_inner_diameter, casing_damage]` → `[110, false]` |
 
-> 其余单操作数节点（`P006/P007/P008/P009/P010/P013/P015`）均用标量。数组偏短 → 尾部记 `missing`；偏长 → 记 `type` 并忽略多余位；亦接受 `{"P001": {"reservoir_layers": 5, "converted_thickness": 12.3}}` 的按名映射（向后兼容）。
+> 其余单操作数节点（`P006/P007/P008/P009/P010/P012/P013/P015`）均用标量。数组偏短 → 尾部记 `missing`；偏长 → 记 `type` 并忽略多余位；亦接受 `{"P001": {"reservoir_layers": 5, "converted_thickness": 12.3}}` 的按名映射（向后兼容）。
 
 ### `basis` —— 聚合基准（外部传入，服务不做统计）
 

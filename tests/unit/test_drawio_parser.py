@@ -73,7 +73,7 @@ def test_geometry_parsed_for_root_node(model) -> None:  # noqa: ANN001
 
 def test_rich_text_and_entities_preserved(model) -> None:  # noqa: ANN001
     p011 = next(n for n in model.nodes if n.code == "P011")
-    assert "<div>" in p011.label          # &lt;div&gt; 已解码为字面量
+    assert "<span" in p011.label          # 1005 修订版：富文本为 span 内联样式（实体已解码）
     p016 = next(n for n in model.nodes if n.code == "P016")
     assert "套管" in p016.label
 
