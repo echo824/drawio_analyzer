@@ -90,6 +90,8 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 |---|---|---|
 | `GET` | `/health` | 健康检查 → `{"status":"ok"}` |
 | `GET` | `/api/v1/templates` | 已加载模板清单（`id`/`version`/`rules_version`/`nodes`），便于排障与验收 |
+| `POST` | `/api/v1/templates/inspect` | 检视任意 .drawio（JSON `path`，只读无需注册；另有 CLI `python -m core.inspector`） |
+| `POST` | `/api/v1/templates/<id>/flow` | 热部署（F3）：multipart `file` 原位替换 flow.drawio，先验后写、落盘持久，旧图备份 `flow.drawio.bak`；失败磁盘不动 |
 | `POST` | `/api/v1/evaluate` | 评价主入口。默认 `text/html`；`?result=json` 或 `Accept: application/json` 返回结构化 JSON |
 
 **JSON 响应（`?result=json`）**

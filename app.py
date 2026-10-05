@@ -24,7 +24,7 @@ from core.expr import build_parameter_context
 from core.inspector import DEFAULT_CODE_PATTERN, inspect_file
 from core.renderer import Renderer
 from core.rule_engine import RuleEngine
-from core.template_manager import TemplateManager
+from core.template_manager import TemplateManager, TemplateValidationError
 from core.validator import InputValidator
 
 TEMPLATES_ROOT = os.environ.get("TEMPLATES_ROOT", "templates")
@@ -88,6 +88,24 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
         report = inspect_file(p, payload.get("pattern") or DEFAULT_CODE_PATTERN)
         return jsonify(report.to_dict()), (200 if report.parse_error is None else 422)
 
+    # ── 热部署（F3）：同模板原位替换 flow.drawio，先验后写、落盘持久 ──
+    @app.post("/api/v1/templates/<template_id>/flow")
+    def hot_swap_flow(template_id: str):  # noqa: ANN201
+        mgr = app.config["MANAGER"]
+        if template_id not in mgr.registry:
+            raise TemplateNotFoundError(template_id)
+        file = request.files.get("file")
+        if file is None:
+            return jsonify({"error": "invalid_request",
+                            "message": "multipart 表单需含 'file' 字段（.drawio）"}), 400
+        if not file.filename.lower().endswith(".drawio"):
+            return jsonify({"error": "invalid_file", "detail": "仅支持 .drawio 文件"}), 400
+        try:
+            result = mgr.hot_swap_flow(template_id, file.read())
+        except TemplateValidationError as exc:
+            return jsonify({"error": "validation_failed", "problems": exc.problems}), 422
+        return jsonify({"status": "swapped", **result}), 200
+
     # ── 评价接口：解析→校验→求值→渲染（需求 §9）─────────
     @app.post("/api/v1/evaluate")
     def evaluate():  # noqa: ANN202
@@ -135,6 +153,7 @@ def create_app(templates_root: str | os.PathLike[str] = TEMPLATES_ROOT) -> Flask
             "<li><code>GET /health</code> 健康检查</li>"
             "<li><code>GET /api/v1/templates</code> 模板清单</li>"
             "<li><code>POST /api/v1/templates/inspect</code> 检视任意 .drawio（只读，无需注册）</li>"
+            "<li><code>POST /api/v1/templates/&lt;id&gt;/flow</code> 热部署：原位替换 flow.drawio（先验后写）</li>"
             "<li><code>POST /api/v1/evaluate</code> 评价（默认 HTML，可 ?result=json）</li>"
             "</ul><h2>演示（模板自带多样例，均直出全链路评价图）</h2>"
             f"<ul>{links}</ul></body></html>"
