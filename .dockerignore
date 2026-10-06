@@ -1,0 +1,22 @@
+# 构建上下文裁剪：开发态工件与运行时数据文档不进镜像
+.git
+.venv
+__pycache__
+**/__pycache__
+*.pyc
+**/*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+tests
+msg_commit*.txt
+*.md
+*.bak
+requirements-dev.txt
+pyproject.toml
+docker-compose.yml
+Dockerfile
+.dockerignore
+# 仓库根的演示/原始图（非模板运行时文件；templates/** 下的 drawio 不受影响）
+*.drawio

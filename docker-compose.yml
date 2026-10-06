@@ -1,0 +1,26 @@
+# 本地 Docker 部署：docker compose up -d --build
+services:
+  oil-frac:
+    build:
+      context: .
+      args:
+        # 国内网络：PyPI 走清华源（基础镜像加速由 Docker Desktop registry-mirrors 承担）
+        PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
+    image: oil-frac-service:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      # templates/ 持久卷：热部署（F3）落盘的 flow.drawio 与 flow.drawio.bak、
+      # rules_version bump 后的配置修改都存于此处，容器重建/镜像升级不丢。
+      # 命名卷首挂会自动继承镜像内 templates 初始内容（当前行为，勿改为 bind 空目录）。
+      - oilfrac_templates:/srv/app/templates
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  oilfrac_templates:
