@@ -94,6 +94,10 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | `POST` | `/api/v1/templates/<id>/flow` | 热部署（F3）：multipart `file` 原位替换 flow.drawio，先验后写、落盘持久，旧图备份 `flow.drawio.bak`；失败磁盘不动 |
 | `POST` | `/api/v1/evaluate` | 评价主入口。默认 `text/html`；`?result=json` 或 `Accept: application/json` 返回结构化 JSON |
 
+> **开发态 CLI 工具**（脱离服务运行）：
+> - `python -m core.inspector <file.drawio> [--json]` —— 任意图只读体检（码清单/重复码/悬空边）
+> - `python -m core.scaffolder <file.drawio> --id <新模板id> [--name 中文名] [--out-root templates]` —— 生成新模板五件套**草稿**：业务码分组、R/C children（按图连线拓扑自动探测方向推导）、聚合算子按新规定档（R=AND/C=OR）、阈值符号表自洽；P 比较式的字段名/运算符/阈值真值落 `TODO(human)` 注释待人工确认，补完后按五件套流程注册；拒绝覆盖已存在目录
+
 **JSON 响应（`?result=json`）**
 
 ```jsonc
