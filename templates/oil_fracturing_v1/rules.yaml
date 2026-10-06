@@ -21,9 +21,10 @@
 
 meta:
   template: oil_fracturing_v1
-  rules_version: "2026.05"          # 规则版本(与模板版本独立, §8/§9)
-  # bump 规则（2026-10-05 F2 拍板）：加/删节点、改聚合算子等结构变更必 bump（日期式 YYYY.MM）；
-  # 阈值真值、渲染样式变更不 bump。2026.05 = 覆盖当日结构变更批次（聚合新规 R=AND/C=OR、
+  rules_version: "2026.06"          # 规则版本(与模板版本独立, §8/§9)
+  # bump 规则（2026-10-05 F2 拍板）：加/删节点、改聚合算子、增/删操作数等结构变更必 bump（日期式 YYYY.MM）；
+  # 阈值真值、渲染样式变更不 bump。2026.06 = P016 删去 casing_inner_diameter 操作数（括号“套管通径>105mm”降为解释文字、不计入求值）；
+  # 2026.05 = 覆盖当日结构变更批次（聚合新规 R=AND/C=OR、
   # 1005 版增 P012/R12-3、修订版 P011 删分支）；此前 2026.04 为旧结构基线。
   default_aggregate: AND            # 未声明时的默认：P 节点 logic 默认 AND；R/C 均已显式声明(R=AND/C=OR)
   evaluation_order: bottom_up       # 自叶节点起沿依赖求值(§2.5)
@@ -108,11 +109,11 @@ P015:
     - { name: injection_completion_rate, op: ">", threshold: x22 }
 P016:
   type: predicate
-  logic: AND
-  # C5: casing_damage 布尔方向保持当前默认：不严重=FALSE→成立；值由 node_values 外部传入
+  # C5/C6（2026-10 确认）：P016 实际只传入“油层深度以上套管损坏不严重”一个布尔量；
+  # 图中标签括号内“套管通径>105mm,有套损库”仅作解释说明，不计入求值（故删除 casing_inner_diameter 操作数）。
+  # 单操作数→node_values 以标量布尔传入（如 "P016": false）；casing_damage 值由外部传入。
   operands:
-    - { name: casing_inner_diameter, op: ">", threshold: casing_min }
-    - { name: casing_damage,         op: "==", value: false }
+    - { name: casing_damage, op: "==", value: false }
 
 # ═════════════════════════════════════════════════════════════
 # R 节点（中间规则）—— 聚合下游

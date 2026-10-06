@@ -101,7 +101,7 @@ quantities:
     kind: measurement
     type: number
     unit: "mm"
-    description: 套管通径(外部套损库结果值传入)
+    description: 套管通径（2026-10 降为 P016 标签括号内的解释说明，不再作为操作数参与求值；定义保留供文档/历史参考）
   casing_damage:
     kind: measurement
     type: boolean
@@ -131,7 +131,7 @@ thresholds:
   x13: { value: 70,  unit: "%" }    # P005 含水率常数阈值(非分段,见需求文档§3.4b)
   x20: { value: 2,   unit: "口" }   # B6 连通开井数阈值（占位 2口）
   x22: { value: 80,  unit: "%" }    # B7 配注完成率阈值（占位 80%）
-  casing_min: { value: 105, unit: "mm" }   # 原 P016 "通径>105mm"
+  casing_min: { value: 105, unit: "mm" }   # 原 P016 “通径>105mm”（2026-10 降为解释文字，不再被任何操作数引用）
   # —— 右值表达式塌缩后的阈值占位符（上线时=外部算好的具体数值）——
   x_p003:          { value: 9,   unit: "t" }     # P003：原 区块平均产油量×1.5（占位 6×1.5）
   x_p005_region:   { value: 47,  unit: "%" }     # P005：原 全区平均含水−Y（占位 55−8）

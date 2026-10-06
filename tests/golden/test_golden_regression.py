@@ -32,10 +32,10 @@ def test_snapshot_invariants(templates_root: Path) -> None:
     assert "UNKNOWN" not in snap["node_states"].values()    # 黄金样例全链路无缺失
     # 结果色仅来自 style 三色，未在代码里硬编码其它色
     assert set(snap["colors"].values()) <= {"#00B050", "#FF0000", "#FFFF00"}
-    # §4.6 值回写：黄金样例（sample_request）14 个 P 均传值 → 全部回写（与传值对齐）
+    # §4.6 值回写：黄金样例（sample_request）传值且标签含运算符的 13 个 P 回写（P016 仅 casing_damage、无锚点不回写）
     assert set(snap["annotations"]) == {
         "P001", "P002", "P003", "P005", "P006", "P007", "P008",
-        "P009", "P010", "P011", "P012", "P013", "P015", "P016",
+        "P009", "P010", "P011", "P012", "P013", "P015",
     }
     # 回写仅发生在 P 节点；用户重点例：实测值（2）插到运算符前
     assert all(code.startswith("P") for code in snap["annotations"])

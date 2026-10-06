@@ -19,10 +19,11 @@ from tests.golden._snapshot import run_bundle
 
 TEMPLATE_ID = "oil_fracturing_v1"
 YELLOW, GREEN, RED = "#FFFF00", "#00B050", "#FF0000"
-# 全达标示例：14 个 P 节点均传有效值→全部值回写（P004/P014 不存在）。
+# 全达标示例：P 节点传值且标签含运算符→回写；P016 仅 casing_damage（op ==、散文无锚点）不回写。
+# （P004/P014 不存在；故回写集为 13 个 P）
 ALL_P: set[str] = {
     "P001", "P002", "P003", "P005", "P006", "P007", "P008",
-    "P009", "P010", "P011", "P012", "P013", "P015", "P016",
+    "P009", "P010", "P011", "P012", "P013", "P015",
 }
 
 
@@ -62,8 +63,8 @@ def test_missing_partial_input(templates_root: Path) -> None:  # noqa: ANN001
     kinds = {i["kind"] for i in snap["issues"]}
     assert "missing" in kinds
     assert any(i["location"].startswith("P001") for i in snap["issues"])
-    # 值回写仅覆盖本示例实际传值的 P 节点（完全省略的 P006/P003 不在其中）
-    assert set(snap["annotations"]) == {"P001", "P002", "P005", "P010", "P016"}
+    # 值回写仅覆盖本示例实际传值、且标签含运算符的 P 节点（省略的 P006/P003、无锚点的 P016 不在其中）
+    assert set(snap["annotations"]) == {"P001", "P002", "P005", "P010"}
     assert "P009" not in snap["annotations"]                    # 未传→不回写
     # 关键路径缺数据 → 根结论无法判定为真，落到 UNKNOWN
     assert snap["root_state"] == "UNKNOWN"
@@ -81,8 +82,8 @@ def test_invalid_values_are_rejected_not_fatal(templates_root: Path) -> None:  #
     assert snap["node_states"]["P006"] == "UNKNOWN"          # oil_diff="abc" 非数值
     assert snap["node_states"]["P016"] == "UNKNOWN"          # casing_damage="maybe" 非法布尔
     assert snap["node_states"]["P002"] == "TRUE"             # 合法项不受影响
-    # 仅合法传值且含运算符的 P 节点被回写（非法量不注入）
-    assert set(snap["annotations"]) == {"P001", "P002", "P016"}
+    # 仅合法传值且标签含运算符的 P 节点被回写（非法量不注入；P016 casing_damage 无锚点不回写）
+    assert set(snap["annotations"]) == {"P001", "P002"}
     # 位置对齐：P001 前置量越界(不插)但保留槽位→后置量（12.3）仍落在折算厚度运算符前
     p001 = snap["annotations"]["P001"]
     assert "层数 &gt;" in p001 and "（12.3） &gt; 5m" in p001
@@ -116,7 +117,7 @@ def test_all_meets_criteria_root_true(templates_root: Path) -> None:  # noqa: AN
     assert len(p_codes) == 14
     assert all(snap["node_states"][c] == "TRUE" for c in p_codes)
     assert all(snap["colors"][c] == GREEN for c in p_codes)
-    # 14 个 P 均传有效值→全部回写；用户重点例 P009
+    # 13 个 P 传值且含运算符→回写（P016 仅 casing_damage、无锚点不回写）；用户重点例 P009
     assert set(snap["annotations"]) == ALL_P
     assert snap["annotations"]["P009"] == "P009 本井日产油（2） &lt; 3 t"
     assert snap["ok"] is True

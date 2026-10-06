@@ -1,12 +1,12 @@
 {
   "template": "oil_fracturing_v1",
   "well_id": "W-INVALID",
-  "_comment": "非法输入示例：按位置给出越界/非数值/非法布尔 → 对应操作数被丢弃(记 issues)、节点判 UNKNOWN，服务不抛错。位置: P001=[层数,折算厚度] P016=[通径,套管损坏]。右值阈值化后无 basis 段",
+  "_comment": "非法输入示例：按位置给出越界/非数值/非法布尔 → 对应操作数被丢弃(记 issues)、节点判 UNKNOWN，服务不抛错。位置: P001=[层数,折算厚度]；P016 单操作数 casing_damage 传非布尔“maybe”。右值阈值化后无 basis 段",
   "node_values": {
     "P001": [150, 12.3],
     "P002": 30,
     "P006": "abc",
-    "P016": [110, "maybe"]
+    "P016": "maybe"
   },
   "thresholds": { "x3": 3, "x4": 5, "x12": 10 }
 }

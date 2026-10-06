@@ -78,12 +78,12 @@ def test_array_longer_than_operands_marks_type(validator: InputValidator) -> Non
 
 def test_array_single_operand_and_bool(validator: InputValidator) -> None:
     assert validator.validate_node_values({"P006": [20]}).values["P006"] == {"oil_diff": 20}
-    r = validator.validate_node_values({"P016": [110, False]})   # 位置：[通径, 套管损坏]
-    assert r.values["P016"] == {"casing_inner_diameter": 110, "casing_damage": False}
+    r = validator.validate_node_values({"P016": [False]})   # 单操作数数组：[套管损坏]
+    assert r.values["P016"] == {"casing_damage": False}
 
 
 def test_array_positional_invalid_still_named(validator: InputValidator) -> None:
-    result = validator.validate_node_values({"P016": [110, "maybe"]})
+    result = validator.validate_node_values({"P016": ["maybe"]})   # 单操作数数组，位置 0 → casing_damage 非法布尔
     assert result.values["P016"]["casing_damage"] is None
     assert any(i.location == "P016.casing_damage" and i.kind == "type" for i in result.issues)
 
@@ -135,14 +135,14 @@ def test_integer_accepts_integral_float_and_numeric_string(validator: InputValid
 )
 def test_boolean_coercion(validator: InputValidator, raw, expected) -> None:  # noqa: ANN001
     result = validator.validate_node_values(
-        {"P016": {"casing_inner_diameter": 110, "casing_damage": raw}}
+        {"P016": {"casing_damage": raw}}
     )
     assert result.values["P016"]["casing_damage"] is expected
 
 
 def test_boolean_invalid_marked_none(validator: InputValidator) -> None:
     result = validator.validate_node_values(
-        {"P016": {"casing_inner_diameter": 110, "casing_damage": "maybe"}}
+        {"P016": {"casing_damage": "maybe"}}
     )
     assert result.values["P016"]["casing_damage"] is None
     assert "type" in issue_kinds(result)

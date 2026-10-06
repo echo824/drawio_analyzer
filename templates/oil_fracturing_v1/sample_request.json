@@ -1,7 +1,7 @@
 {
   "template": "oil_fracturing_v1",
   "well_id": "W001",
-  "_comment": "节点值=标量(单操作数) 或 数组(按 rules.yaml 去重后操作数顺序位置映射)。示例: P001=[reservoir_layers, converted_thickness], P016=[casing_inner_diameter, casing_damage]。1005 修订版：P011 仅剩流压单操作数(标量)，动液面走 P012。右值全面阈值化：无 basis 段，各 x_pXXX_* 阈值由外部算好后经 thresholds 覆盖（此处沿用 parameters.yaml 占位默认）",
+  "_comment": "节点值=标量(单操作数) 或 数组(按 rules.yaml 去重后操作数顺序位置映射)。示例: P001=[reservoir_layers, converted_thickness], P016=false(单操作数 casing_damage)。1005 修订版：P011 仅剩流压单操作数(标量)，动液面走 P012。右值全面阈值化：无 basis 段，各 x_pXXX_* 阈值由外部算好后经 thresholds 覆盖（此处沿用 parameters.yaml 占位默认）",
   "node_values": {
     "P001": [5, 12.3],
     "P002": 30,
@@ -16,7 +16,7 @@
     "P012": 500,
     "P013": 3,
     "P015": 85,
-    "P016": [110, false]
+    "P016": false
   },
   "thresholds": {
     "x3": 3,
