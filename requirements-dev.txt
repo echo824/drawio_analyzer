@@ -1,6 +1,9 @@
 # 开发/测试依赖（Phase 0）
+# 锁版本：避免工具自动升级引入新规则/行为漂移导致 CI 红绿不定（2026-10 CI 教训）
+# 以下均为本地全量测试实际跑绿（EXIT=0）的版本
 -r requirements.txt
-pytest>=8.0
-pytest-cov>=5.0
-ruff>=0.6
-mypy>=1.10
+pytest==9.1.1
+pytest-cov==7.1.0
+coverage==7.16.2
+ruff==0.16.10
+mypy==2.4.0

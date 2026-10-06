@@ -54,7 +54,8 @@ def run_bundle(root: Path, template_id: str, payload: dict[str, Any]) -> dict[st
     renderer = Renderer(cfg.style)
     summary = renderer.summary_dict(model, result)
     id_to_code = {v: k for k, v in model.code_map.items()}
-    patches = renderer.value_patches(model, context.symbols, cfg.nodes, nv.values)  # cell_id → 新 label（§6.6 阈值替换 + §4.6 值回写）
+    # cell_id → 新 label（§6.6 阈值替换 + §4.6 值回写）
+    patches = renderer.value_patches(model, context.symbols, cfg.nodes, nv.values)
     annotations = {id_to_code[cid]: lab for cid, lab in patches.items() if cid in id_to_code}
     all_issues = list(nv.issues) + list(thr_issues)
 
