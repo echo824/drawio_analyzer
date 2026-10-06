@@ -134,13 +134,13 @@
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-56" edge="1" parent="1" source="32" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="32" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P001&amp;nbsp;可压储层层数 &amp;gt; x3个 且&amp;nbsp;折算厚度（(砂岩-有效)/3+有效） &amp;gt; x4m" vertex="1">
+        <mxCell id="32" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P001&amp;nbsp;可压储层层数 &amp;gt; 3个 且&amp;nbsp;折算厚度（(砂岩-有效)/3+有效） &amp;gt; 5m" vertex="1">
           <mxGeometry height="50" width="150" x="1050" y="-180" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-57" edge="1" parent="1" source="33" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P002 全井连通厚度 &amp;gt; x1 m" vertex="1">
+        <mxCell id="33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;" value="P002 全井连通厚度 &amp;gt; 5 m" vertex="1">
           <mxGeometry height="50" width="150" x="870" y="-170" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-38" edge="1" parent="1" source="6" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.328;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;" target="3">
@@ -166,13 +166,13 @@
             <mxPoint x="581.9669914110091" y="-92.67766952966372" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-61" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;fontSize=12;" value="P005 本井含水 &amp;lt; x13% 或 &amp;lt; （全区平均值或井网平均值-Y）分段给Y值。" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-61" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=light-dark(#ffffcc, #181800);strokeColor=#000000;fontSize=12;" value="P005 本井含水 &amp;lt; 70%" vertex="1">
           <mxGeometry height="63.75" width="170" x="560" y="-78.75" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-81" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-62" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="27">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-62" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P006 本井初期与目前日产油之差 &amp;gt; x12 t" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-62" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P006 本井初期与目前日产油之差 &amp;gt; 10 t" vertex="1">
           <mxGeometry height="60" width="160" x="150" y="-20" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-82" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-63" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="27">
@@ -180,22 +180,22 @@
             <mxPoint x="310" y="270" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-63" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P007 本井产液强度 &amp;lt; x8 t/d.m 或 &amp;lt; x9×全区平均值或井网平均值" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-63" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P007 本井产液强度 &amp;lt; 2 t/d.m 或 &amp;lt; 1.6 t/d.m" vertex="1">
           <mxGeometry height="60" width="160" x="80" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-64" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P008 本井日产液 &amp;lt; x6 t 或 &amp;lt; x7×全区平均值或井网平均值" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-64" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P008 本井日产液 &amp;lt; 10 t 或 &amp;lt; 12.5 t" vertex="1">
           <mxGeometry height="60" width="160" x="80" y="140" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-84" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-65" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=1;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="27">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-65" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P009 本井日产油 &amp;lt; x10 t 或 &amp;lt; x11×全区平均值或井网平均值或周围油井产油量平均值" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-65" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P009 本井日产油 &amp;lt; 3 t" vertex="1">
           <mxGeometry height="60" width="160" x="94" y="215" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-89" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-66" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="28">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-66" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P010&amp;nbsp;目前地层压力 &amp;gt; 区块平均值" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-66" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P010&amp;nbsp;目前地层压力 &amp;gt; 16 MPa" vertex="1">
           <mxGeometry height="60" width="160" x="94" y="310" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-90" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-67" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;entryX=0.052;entryY=0.796;entryDx=0;entryDy=0;entryPerimeter=0;" target="eblSHx5zFnT1jXDRe1oR-36">
@@ -203,7 +203,7 @@
             <mxPoint x="320" y="340" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-67" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P011 流压小于区块平均&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;值&lt;/span&gt;" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-67" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P011 流压小于&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;12 MPa&lt;/span&gt;" vertex="1">
           <mxGeometry height="60" width="160" x="94" y="400" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-91" edge="1" parent="1" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;">
@@ -211,13 +211,13 @@
             <mxPoint x="1175.299561194954" y="-209.790010279562" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-69" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P013 与本井连通水井（井距&amp;lt;350米）开井数 &amp;gt; x20 口" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-69" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P013 与本井连通水井（井距&amp;lt;350米）开井数 &amp;gt; 2 口" vertex="1">
           <mxGeometry height="60" width="160" x="60" y="590" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-94" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-71" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="31">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-71" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P015 与本井连通水井配注完成率 &amp;gt; x22%（提出水井配套措施）" vertex="1">
+        <mxCell id="ukcuZfHQnJ5xVRSnUBC_-71" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P015 与本井连通水井配注完成率 &amp;gt; 80%（提出水井配套措施）" vertex="1">
           <mxGeometry height="60" width="160" x="264" y="650" as="geometry" />
         </mxCell>
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-79" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-61" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.053;entryY=0.24;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="26">
@@ -229,7 +229,7 @@
         <mxCell id="ukcuZfHQnJ5xVRSnUBC_-92" edge="1" parent="1" source="ukcuZfHQnJ5xVRSnUBC_-69" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.047;entryY=0.68;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" target="30">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="E572067cMf_2y7_UBGg1-37" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;" value="p003 周围油井产油量&amp;gt;区块平均产油量*1.5" vertex="1">
+        <mxCell id="E572067cMf_2y7_UBGg1-37" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;" value="p003 周围油井产油量&amp;gt;9t" vertex="1">
           <mxGeometry height="50" width="150" x="1200" y="-40" as="geometry" />
         </mxCell>
         <mxCell id="E572067cMf_2y7_UBGg1-38" edge="1" parent="1" source="E572067cMf_2y7_UBGg1-37" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="eblSHx5zFnT1jXDRe1oR-33">
@@ -261,7 +261,7 @@
         <mxCell id="eblSHx5zFnT1jXDRe1oR-37" edge="1" parent="1" source="eblSHx5zFnT1jXDRe1oR-36" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.357;entryY=0.968;entryDx=0;entryDy=0;entryPerimeter=0;" target="17">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="eIIYTdj9SjxPbJwKICpW-33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P012&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;动液面大于区块平均值&lt;/span&gt;" vertex="1">
+        <mxCell id="eIIYTdj9SjxPbJwKICpW-33" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFCC;strokeColor=#000000;fontSize=12;" value="P012&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;动液面大于 600 m&lt;/span&gt;" vertex="1">
           <mxGeometry height="60" width="160" x="120" y="475" as="geometry" />
         </mxCell>
         <mxCell id="eIIYTdj9SjxPbJwKICpW-36" edge="1" parent="1" source="eIIYTdj9SjxPbJwKICpW-34" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="17">

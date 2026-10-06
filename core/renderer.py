@@ -8,8 +8,11 @@ ISSUE-1.6 职责（§6.1–6.3）：
 
 §6.6 改版（2026-10 右值全面阈值化）：
   - 描述文本中的阈值占位符（x13 / x_p005_region…）→ 具体数值（上线时经 thresholds 传入）；
-  - 括号（…）/(…) 内为解释性文字，绝不处理（如 P013 的"（井距<350米）"）；
-  - 旧"实测值插到运算符前"的回写方式已整体退役。
+  - 括号（…）/(…) 内为解释性文字，绝不处理（如 P013 的"（井距<350米）"）。
+
+§4.6 参数值回写标注（2026-10 恢复，与 §6.6 替换共存）：
+  - 把传入的实测值以全角（值）插到该量对应比较运算符之前（如 P009 “本井日产油（2） < 3 t”）；
+  - 运算符锚点只认实体与中文词，绝不认裸 < / >（防误伤 <span> 等标签）；仅输入 P 节点回写、R/C 透传。
 """
 from __future__ import annotations
 
@@ -104,6 +107,64 @@ def substitute_label(label: str, values: dict[str, Any]) -> str:
     return _apply_substitution(label, pattern, values)
 
 
+# ── §4.6 参数值回写标注（与阈值替换共存：把实测值以（值）插到运算符前）──
+# 运算符定位只认「实体形式」(&gt;/&lt;…) 与「中文词」(大于/小于…)，
+# 绝不匹配裸 < / >（避免误伤 <div>/<span> 等标签）；最长优先防「大于」抢「大于等于」。
+_OP_CANON = {
+    "&gt;=": ">=", "&lt;=": "<=", "&gt;": ">", "&lt;": "<", "&ne;": "!=",
+    "≥": ">=", "≤": "<=", "≠": "!=",
+    "大于等于": ">=", "小于等于": "<=", "不小于": ">=", "不大于": "<=",
+    "不等于": "!=", "等于": "==", "大于": ">", "小于": "<",
+}
+_OP_RE = re.compile("|".join(re.escape(k) for k in sorted(_OP_CANON, key=len, reverse=True)))
+_SPACE = " \t\u3000"
+
+
+def format_annotation_value(raw: Any, va: dict[str, Any]) -> str | None:
+    """返回括号内的裸文本；None 表示不注入（缺失/UNKNOWN，且未配置占位）。"""
+    if raw is None:
+        return va.get("unknown", "") or None            # 默认 "" → 不显示
+    if isinstance(raw, bool):                           # 先于数值判定（bool 是 int 子类）
+        return va.get("bool_true", "是") if raw else va.get("bool_false", "否")
+    if isinstance(raw, (int, float)):
+        return _display_number(raw)
+    return str(raw)
+
+
+def annotate_label(label: str, bindings: list[tuple[str, str | None]], va: dict[str, Any]) -> str:
+    """把各操作数的 （值） 插到其对应运算符之前（§4.6）。
+
+    - bindings 按去重操作数声明顺序，每项 (op, display)；display=None 表示该量 UNKNOWN/缺失；
+    - 逐量按序消费同运算符的**首次未用出现**：即使 display=None 也占位消费（保留槽位），
+      避免前置量缺失时后置量的值错插到前置量运算符之前（位置对齐）；
+    - 无匹配运算符（如散文"不严重"/casing_damage 的 ==）→ 优雅跳过该量，不追加到末尾；
+    - 括号取全角（）；幂等：目标位已是该 （值） 则不重复插；只在运算符前追加、不改原字符。
+    """
+    open_b, close_b = (va.get("brackets") or ["（", "）"])[:2]
+    matches = [(m.start(), _OP_CANON[m.group(0)]) for m in _OP_RE.finditer(label)]
+    used: set[int] = set()
+    inserts: list[tuple[int, str]] = []
+    for op, display in bindings:
+        op_norm = (op or "").strip()
+        anchor = next((pos for pos, canon in matches if canon == op_norm and pos not in used), None)
+        if anchor is None:
+            continue                                     # 无锚点 → 优雅跳过（不占位、不追加末尾）
+        used.add(anchor)                                 # 占位消费：无论是否插入都锁定该运算符
+        if display is None:
+            continue                                     # UNKNOWN/缺失：保留槽位但不注入
+        insert_at = anchor
+        while insert_at > 0 and label[insert_at - 1] in _SPACE:
+            insert_at -= 1
+        text = f"{open_b}{display}{close_b}"
+        if label[:insert_at].rstrip().endswith(text):
+            continue                                     # 幂等：已存则不重复
+        inserts.append((insert_at, text))
+    result = label
+    for pos, text in sorted(inserts, key=lambda x: x[0], reverse=True):
+        result = result[:pos] + text + result[pos:]
+    return result
+
+
 class Renderer:
     """依 style.yaml 对模板模型施加结果配色。"""
 
@@ -123,6 +184,8 @@ class Renderer:
         self.passthrough_types = set(untouched.get("types", []) or [])
         # §6.6 改版：阈值占位符替换配置（style.yaml threshold_substitution 段）
         self.substitution = self.style.get("threshold_substitution", {}) or {}
+        # §4.6：参数值回写标注配置（style.yaml value_annotation 段，与阈值替换共存）
+        self.value_annotation = self.style.get("value_annotation", {}) or {}
 
     # ── 状态 → 结果色 ───────────────────────────────────
     def fill_for(self, state: TriState) -> str | None:
@@ -214,6 +277,85 @@ class Renderer:
         self.apply_attr_to_xml(root, patches, attr="value")
         return ET.tostring(root, encoding="unicode")
 
+    # ── §4.6 参数值回写（仅输入 P 节点；实测值（值）插到运算符前）──
+    def annotate(
+        self, nodes: dict[str, Any], node_values: dict[str, Any], model: TemplateModel
+    ) -> dict[str, str]:
+        """对"出现在输入里的 P 节点"生成 {cell_id: 新 label}：缺失量不插、布尔→（是/否）、幂等。"""
+        va = self.value_annotation
+        if not va.get("enabled", False) or not nodes or not node_values:
+            return {}
+        label_by_cell = {n.cell_id: n.label for n in model.nodes}
+        kind_by_cell = {n.cell_id: n.kind for n in model.nodes}
+        patches: dict[str, str] = {}
+        for code, vals in node_values.items():
+            node_def = nodes.get(code)
+            if node_def is None or getattr(node_def, "type", None) != "predicate":
+                continue                                 # R/C 不回写
+            cell_id = model.code_map.get(code)
+            if not cell_id or kind_by_cell.get(cell_id) != "P":
+                continue
+            bindings = self._bindings(node_def, vals, va)
+            base = label_by_cell.get(cell_id)
+            if not bindings or base is None:
+                continue
+            new_label = annotate_label(base, bindings, va)
+            if new_label != base:
+                patches[cell_id] = new_label
+        return patches
+
+    @staticmethod
+    def _bindings(node: Any, vals: Any, va: dict[str, Any]) -> list[tuple[str, str | None]]:
+        """按去重后的操作数顺序组装 (op, display)；每个量各占一位（display 可为 None）。
+
+        None 值（UNKNOWN/缺失）仍保留其运算符槽位，避免后置量的值错插到前置量运算符之前。"""
+        if not isinstance(vals, dict):
+            return []
+        seen: set[str] = set()
+        bindings: list[tuple[str, str | None]] = []
+        for operand in node.operands or []:
+            name = operand.get("name")
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            bindings.append((operand.get("op", ""), format_annotation_value(vals.get(name), va)))
+        return bindings
+
+    def value_patches(
+        self,
+        model: TemplateModel,
+        symbols: dict[str, Any] | None = None,
+        nodes: dict[str, Any] | None = None,
+        node_values: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        """§6.6 阈值替换 与 §4.6 值回写 的合成补丁（先换符号、再插实测值）。"""
+        symbols = symbols or {}
+        node_values = node_values or {}
+        values = {k: v for k, v in symbols.items() if v is not None}
+        pattern = (
+            compile_symbol_pattern(values)
+            if (self.substitution.get("enabled", False) and values)
+            else None
+        )
+        predicate_only = self.substitution.get("scope", "predicate_only") == "predicate_only"
+        ann_on = self.value_annotation.get("enabled", False) and bool(nodes) and bool(node_values)
+        patches: dict[str, str] = {}
+        for node in model.nodes:
+            if node.code is None:
+                continue
+            label = node.label
+            if pattern is not None and (node.kind == "P" or not predicate_only):
+                label = _apply_substitution(label, pattern, values)
+            if ann_on and node.kind == "P":
+                node_def = nodes.get(node.code)
+                if node_def is not None and getattr(node_def, "type", None) == "predicate":
+                    bindings = self._bindings(node_def, node_values.get(node.code), self.value_annotation)
+                    if bindings:
+                        label = annotate_label(label, bindings, self.value_annotation)
+            if label != node.label:
+                patches[node.cell_id] = label
+        return patches
+
     # ── ISSUE-1.8：整图 XML / HTML / 结构化 JSON 输出 ──────────
     def to_diagram_xml(
         self,
@@ -222,13 +364,16 @@ class Renderer:
         result: EvaluationResult,
         *,
         symbols: dict[str, Any] | None = None,
+        nodes: dict[str, Any] | None = None,
+        node_values: dict[str, Any] | None = None,
     ) -> str:
-        """只读解析原始 .drawio → 叠加 style(1.6)+阈值替换(§6.6改版) 补丁 → 序列化整图 XML。
+        """只读解析原始 .drawio → 叠加 style(1.6)+阈值替换(§6.6)+值回写(§4.6) 补丁 → 序列化整图 XML。
         原始文件不变；输出保留 mxfile/diagram/mxGraphModel 层级以保布局与连线。"""
         root = SafeET.parse(str(path)).getroot()
         self.apply_to_xml(root, self.colorize(model, result))
-        if symbols:
-            self.apply_attr_to_xml(root, self.substitute(model, symbols), attr="value")
+        patches = self.value_patches(model, symbols, nodes, node_values)
+        if patches:
+            self.apply_attr_to_xml(root, patches, attr="value")
         return ET.tostring(root, encoding="unicode")
 
     def summary_dict(self, model: TemplateModel, result: EvaluationResult) -> dict[str, Any]:
@@ -294,10 +439,14 @@ class Renderer:
         result: EvaluationResult,
         *,
         symbols: dict[str, Any] | None = None,
+        nodes: dict[str, Any] | None = None,
+        node_values: dict[str, Any] | None = None,
         title: str = "评价结果",
     ) -> dict[str, Any]:
         """汇总输出：整图 XML + 内嵌 viewer 的 HTML + 结构化 JSON（供 1.9 内容协商）。"""
-        diagram_xml = self.to_diagram_xml(path, model, result, symbols=symbols)
+        diagram_xml = self.to_diagram_xml(
+            path, model, result, symbols=symbols, nodes=nodes, node_values=node_values
+        )
         summary = self.summary_dict(model, result)
         html_out = self.to_html(diagram_xml, title=title, summary=summary)
         return {"html": html_out, "xml": diagram_xml, "summary": summary}
@@ -312,5 +461,7 @@ __all__ = [
     "apply_fill_color",
     "substitute_label",
     "compile_symbol_pattern",
+    "annotate_label",
+    "format_annotation_value",
     "VIEWER_SRC",
 ]

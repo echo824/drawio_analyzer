@@ -2,8 +2,9 @@
 # 权威依据：需求补充（基于真实模板）.md §4
 # 决策：结果用 fillColor 表达(绿/红/黄)，类型不再依赖颜色、由业务码前缀识别；原始 .drawio 只读。
 # 【E 处置】以下均为当前确认策略，保留不变：色值 E1、UNKNOWN 占位 E3(默认不显示)、
-#   角标开关 E4(默认关闭)；【E2 作废】旧“实测值回写小数位 raw”随运算符插值方式退役，
-#   数值格式约定平移至下方 threshold_substitution.number_format；如需变更只改本文件。
+#   角标开关 E4(默认关闭)；【2026-10 恢复】实测值回写标注（§4.6 value_annotation）与
+#   阈值占位符替换（§6.6 threshold_substitution）共存：先把符号换成阈值数值，再把传入的
+#   实测值以全角（值）插到对应运算符前；数值格式约定 number_format: raw 两处共用。
 
 meta:
   template: oil_fracturing_v1
@@ -45,6 +46,20 @@ threshold_substitution:
   undefined: keep                      # 未取值的符号(None/不在符号表)原样保留；后期模板直写数字自然无匹配
   idempotent: true                     # 替换后不再含符号 → 天然幂等，重复渲染不叠加
   preserve_rich_text: true             # 不破坏 html 实体 / <div>
+
+# ── 5b) 参数值回写标注（§4.6，与 §6.6 阈值替换共存）：
+#      把 node_values 传入的实测值以全角（值）插到该量对应比较运算符之前 ──
+#   例：P009 传入 oil_daily=2 → “P009 本井日产油（2） &lt; 3 t”。
+#   命名绑定：按 rules.yaml 去重后的操作数各插一次；仅输入 P 节点回写，R/C 透传。
+#   幂等；只作用内存/输出，原始 .drawio 只读。
+value_annotation:
+  enabled: true
+  brackets: ["（", "）"]                # 全角括号包裹实测值
+  bool_true: 是                         # 布尔 True → （是）
+  bool_false: 否                        # 布尔 False → （否）
+  unknown: ""                           # 缺失/UNKNOWN 量：默认空串 → 不注入（可配“（—）”）
+  number_format: raw                    # 与阈值替换一致：整数值浮点去小数点
+  anchor_ops: [entities, chinese]       # 运算符锚点仅认实体(&lt;/&gt;…)与中文词(大于/小于…)，绝不认裸 </>（防误伤标签）
 
 # ── 6) 输出渲染 ──
 output:

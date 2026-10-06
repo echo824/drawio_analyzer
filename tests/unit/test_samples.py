@@ -1,8 +1,11 @@
-"""多示例端到端回归（缺失 / 非法 / 极简 输入）。
+"""多示例端到端回归（缺失 / 非法 / 极简 / 全达标 输入）。
 
-验证需求 §9.3「非法/缺失输入不抛错、相应节点判 UNKNOWN」与本阶段新约定
-「仅 P/C 施加结果色，R(关系)节点保持模板原样」、「阈值占位符替换只依赖
-阈值表(§6.6 改版)，与实测值无关」在多场景下同时成立。
+验证需求 §9.3「非法/缺失输入不抛错、相应节点判 UNKNOWN」与本阶段约定
+「仅 P/C 施加结果色，R(关系)节点保持模板原样」在多场景下同时成立。
+描述补丁 = §6.6 阈值替换 + §4.6 值回写（共存）。生产模板已数字直写→无替换；
+值回写仅对「已在 node_values 提供且可解析、且描述含对应运算符」的 P 节点生成，
+故 annotations 的覆盖面随各示例传值而变（非恒空）。§6.6 替换机制本身的集成
+覆盖见合成夹具（tests/unit/test_renderer_annotation + tests/conftest:symbol_flow_path）。
 """
 from __future__ import annotations
 
@@ -16,8 +19,11 @@ from tests.golden._snapshot import run_bundle
 
 TEMPLATE_ID = "oil_fracturing_v1"
 YELLOW, GREEN, RED = "#FFFF00", "#00B050", "#FF0000"
-# 描述中含"已定义阈值符号"的 P 节点集（§6.6 改版：替换只依赖阈值表，与实测值无关）
-SUBSTITUTED_P = {"P001", "P002", "P005", "P006", "P007", "P008", "P009", "P013", "P015"}
+# 全达标示例：14 个 P 节点均传有效值→全部值回写（P004/P014 不存在）。
+ALL_P: set[str] = {
+    "P001", "P002", "P003", "P005", "P006", "P007", "P008",
+    "P009", "P010", "P011", "P012", "P013", "P015", "P016",
+}
 
 
 def _run(templates_root: Path, name: str) -> dict[str, Any]:
@@ -45,21 +51,20 @@ def test_missing_partial_input(templates_root: Path) -> None:  # noqa: ANN001
     snap = _run(templates_root, "sample_request_missing")
     _assert_common_invariants(snap)
 
-    # 完全省略的 P006/P003：判 UNKNOWN、黄底；但阈值替换与取值无关，照常生效
+    # 完全省略的 P006/P003：判 UNKNOWN、黄底
     for code in ("P006", "P003"):
         assert snap["node_states"][code] == "UNKNOWN"
         assert snap["colors"][code] == YELLOW
-    assert "x12" not in snap["annotations"]["P006"]          # 占位符→默认阈值数值
-
-    # 提供且成立的 P002：TRUE、绿底；描述 "&gt; x1 m" 已换成默认阈值 "&gt; 5 m"
+    # 提供且成立的 P002：TRUE、绿底
     assert snap["node_states"]["P002"] == "TRUE"
     assert snap["colors"]["P002"] == GREEN
-    assert "x1 " not in snap["annotations"]["P002"] and "5 m" in snap["annotations"]["P002"]
-
     # 缺操作数被记为 missing，且不影响服务成功返回
     kinds = {i["kind"] for i in snap["issues"]}
     assert "missing" in kinds
     assert any(i["location"].startswith("P001") for i in snap["issues"])
+    # 值回写仅覆盖本示例实际传值的 P 节点（完全省略的 P006/P003 不在其中）
+    assert set(snap["annotations"]) == {"P001", "P002", "P005", "P010", "P016"}
+    assert "P009" not in snap["annotations"]                    # 未传→不回写
     # 关键路径缺数据 → 根结论无法判定为真，落到 UNKNOWN
     assert snap["root_state"] == "UNKNOWN"
 
@@ -71,14 +76,17 @@ def test_invalid_values_are_rejected_not_fatal(templates_root: Path) -> None:  #
     kinds = {i["kind"] for i in snap["issues"]}
     assert {"range", "type"} <= kinds                        # 越界 + 非法类型均被拦截
 
-    # 越界/非数值/非法布尔 → 相关节点 UNKNOWN；实测值从不进描述（回写已退役）
+    # 越界/非数值/非法布尔 → 相关节点 UNKNOWN；非法量不注入（仅保留槽位）
     assert snap["node_states"]["P001"] == "UNKNOWN"          # reservoir_layers=150 越界
     assert snap["node_states"]["P006"] == "UNKNOWN"          # oil_diff="abc" 非数值
     assert snap["node_states"]["P016"] == "UNKNOWN"          # casing_damage="maybe" 非法布尔
     assert snap["node_states"]["P002"] == "TRUE"             # 合法项不受影响
-    assert "150" not in snap["annotations"].get("P001", "")  # 非法值绝不进描述
-    assert "abc" not in "".join(snap["annotations"].values())
-    assert "x12" not in snap["annotations"]["P006"]          # 替换只依阈值表，与非法值无关
+    # 仅合法传值且含运算符的 P 节点被回写（非法量不注入）
+    assert set(snap["annotations"]) == {"P001", "P002", "P016"}
+    # 位置对齐：P001 前置量越界(不插)但保留槽位→后置量（12.3）仍落在折算厚度运算符前
+    p001 = snap["annotations"]["P001"]
+    assert "层数 &gt;" in p001 and "（12.3） &gt; 5m" in p001
+    assert "层数（" not in p001
     assert snap["root_state"] == "UNKNOWN"
 
 
@@ -88,8 +96,8 @@ def test_minimal_all_unknown(templates_root: Path) -> None:  # noqa: ANN001
 
     assert set(snap["node_states"].values()) == {"UNKNOWN"}  # 空输入 → 全 UNKNOWN
     assert set(snap["colors"].values()) == {YELLOW}          # P/C 全黄
-    # 阈值替换与取值无关：空输入仍按 parameters.yaml 占位默认值把描述换成数值
-    assert set(snap["annotations"]) == SUBSTITUTED_P
+    # 未提供任何 node_values → 无任何回写（与是否含运算符无关）
+    assert snap["annotations"] == {}
     assert snap["ok"] is True                                 # 未提供≠非法：无 issues
     assert snap["root_state"] == "UNKNOWN"
 
@@ -108,7 +116,9 @@ def test_all_meets_criteria_root_true(templates_root: Path) -> None:  # noqa: AN
     assert len(p_codes) == 14
     assert all(snap["node_states"][c] == "TRUE" for c in p_codes)
     assert all(snap["colors"][c] == GREEN for c in p_codes)
-    assert set(snap["annotations"]) == SUBSTITUTED_P          # 替换覆盖面与取值无关
+    # 14 个 P 均传有效值→全部回写；用户重点例 P009
+    assert set(snap["annotations"]) == ALL_P
+    assert snap["annotations"]["P009"] == "P009 本井日产油（2） &lt; 3 t"
     assert snap["ok"] is True
 
 

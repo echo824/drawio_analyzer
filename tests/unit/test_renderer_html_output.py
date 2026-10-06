@@ -37,6 +37,12 @@ def model(cfg, flow_path: Path):  # noqa: ANN001
 
 
 @pytest.fixture()
+def sym_model(cfg, symbol_flow_path: Path):  # noqa: ANN001
+    """合成含占位符图模型（生产模板已数字直写，替换相关断言改走此模型）。"""
+    return DrawioParser(cfg.node_code_pattern).parse(symbol_flow_path)
+
+
+@pytest.fixture()
 def sample(templates_root: Path) -> dict:  # noqa: ANN001
     return json.loads((templates_root / TEMPLATE_ID / "sample_request.json").read_text(encoding="utf-8"))
 
@@ -54,30 +60,32 @@ def result(cfg, sample):  # noqa: ANN001
 
 
 # ── 整图 XML：叠加 style + 阈值替换，结构保真，原始只读 ───────
-def test_diagram_xml_merges_color_and_substitution(cfg, model, renderer, flow_path):  # noqa: ANN001
-    before = flow_path.read_text(encoding="utf-8")
+def test_diagram_xml_merges_color_and_substitution(cfg, sym_model, renderer, symbol_flow_path):  # noqa: ANN001
+    before = symbol_flow_path.read_text(encoding="utf-8")
     xml = renderer.to_diagram_xml(
-        flow_path, model, result_dummy(model), symbols={"x12": 20},
+        symbol_flow_path, sym_model, result_dummy(sym_model), symbols={"x12": 20},
     )
     assert "20 t" in xml                                     # 阈值符号→数值（§6.6 改版）
-    assert "x12" not in xml                                  # 描述中不再残留占位符
+    assert "x12" not in xml                                  # P006 占位符已消除
     assert "<mxfile" in xml and "<mxGraphModel" in xml       # 层级保留
     assert 'edge="1"' in xml and "source=" in xml            # 连线保留
     assert "fontSize" in xml or "strokeColor" in xml         # 原样式键保留
-    assert flow_path.read_text(encoding="utf-8") == before   # 原始只读
+    assert symbol_flow_path.read_text(encoding="utf-8") == before  # 原始只读
 
 
-def test_diagram_xml_colorize_only_without_substitution(cfg, model, renderer, flow_path, result):  # noqa: ANN001
-    xml = renderer.to_diagram_xml(flow_path, model, result)   # 不传 symbols
-    assert "#FF0000" in xml                                   # 结果色仍施加（C001 FALSE→红）
-    assert "x12" in xml                                        # 无阈值替换 → 符号原样
+def test_diagram_xml_colorize_only_without_substitution(cfg, sym_model, renderer, symbol_flow_path):  # noqa: ANN001
+    xml = renderer.to_diagram_xml(symbol_flow_path, sym_model, result_dummy(sym_model))  # 不传 symbols
+    assert "#00B050" in xml                                  # 结果色仍施加（TRUE→绿）
+    assert "x12" in xml                                       # 无阈值替换 → 符号原样保留
 
 
-def result_dummy(model):  # noqa: ANN001, ANN201
+def result_dummy(model, false_codes=()):  # noqa: ANN001, ANN201
     from core.models import EvaluationResult, TriState
-    states = {code: TriState.TRUE for code in model.code_map}
+    states = {code: (TriState.FALSE if code in false_codes else TriState.TRUE)
+              for code in model.code_map}
+    root = TriState.FALSE if "C001" in false_codes else TriState.TRUE
     return EvaluationResult(template_id=TEMPLATE_ID, well_id=None, rules_version=None,
-                            node_states=states, root_state=TriState.TRUE)
+                            node_states=states, root_state=root)
 
 
 # ── 结构化 JSON（§9.1）──────────────────────────────────────
@@ -116,9 +124,10 @@ def test_html_summary_block(renderer):  # noqa: ANN001
 
 
 # ── render 编排：返回 html/xml/summary 三件套 ────────────────
-def test_render_orchestrator_returns_all_parts(cfg, model, renderer, flow_path, result):  # noqa: ANN001
+def test_render_orchestrator_returns_all_parts(cfg, sym_model, renderer, symbol_flow_path):  # noqa: ANN001
     out = renderer.render(
-        flow_path, model, result, symbols={"x12": 20}, title="压裂评价",
+        symbol_flow_path, sym_model, result_dummy(sym_model, ("C001",)),
+        symbols={"x12": 20}, title="压裂评价",
     )
     assert set(out) == {"html", "xml", "summary"}
     assert VIEWER_SRC in out["html"]

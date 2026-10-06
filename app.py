@@ -255,6 +255,8 @@ def _run_pipeline(mgr: TemplateManager, template_id: str, payload: dict) -> dict
         model,
         result,
         symbols=context.symbols,                       # §6.6 改版：描述中的阈值符号→具体数值
+        nodes=cfg.nodes,                               # §4.6：值回写按操作数命名绑定取值
+        node_values=nv.values,                         # §4.6：把实测值以（值）插到运算符前
         title=f"油井压裂评价结果 · {payload.get('well_id') or cfg.template_id}",
     )
 
