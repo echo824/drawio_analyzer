@@ -17,6 +17,7 @@ meta:
 # 色值沿用旧三态（绿/红/黄），仅施加通道变更；UNKNOWN 占位 E3 默认不显示约束不变。
 result_style:
   channel: stroke
+  stroke_width: 3                      # 边线粗细（draw.io 默认 1；提到 3 使结果在密集图中一眼可辨；设 1 则回到细线）
   color_kinds: [P, C]                # 仅对 P(输入)/C(结论)施加结果样式；R(关系/中间规则)保持模板原样
   "TRUE":    { strokeColor: "#00B050", bold: true }   # 成立=绿边加粗
   "FALSE":   { strokeColor: "#FF0000", bold: true }   # 不成立=红边加粗

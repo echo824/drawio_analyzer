@@ -19,6 +19,7 @@ from core.renderer import (
     apply_bold,
     apply_fill_color,
     apply_stroke_color,
+    apply_stroke_width,
 )
 from core.rule_engine import RuleEngine
 from core.validator import InputValidator
@@ -77,6 +78,21 @@ def test_stroke_channel_only_touches_strokeColor() -> None:
     assert out == "ellipse;whiteSpace=wrap;fillColor=#FFFFCC;strokeColor=#FF0000;fontSize=12;"
 
 
+# ── 边线粗细 strokeWidth（2026-10-08 强化）──────────────
+def test_stroke_width_appends_when_absent_and_preserves_others() -> None:
+    style = "ellipse;whiteSpace=wrap;fillColor=#FFFFCC;strokeColor=#000000;"
+    out = apply_stroke_width(style, 3)
+    assert "strokeWidth=3" in out
+    assert out.startswith("ellipse;") and "fillColor=#FFFFCC" in out and "strokeColor=#000000" in out
+
+
+def test_stroke_width_idempotent_and_clamps() -> None:
+    once = apply_stroke_width("rounded=0;", 3)
+    assert apply_stroke_width(once, 3) == once            # 同值不改写
+    assert "strokeWidth=1" in apply_stroke_width("rounded=0;", 0)   # <1 兜底 1
+    assert "strokeWidth=1" in apply_stroke_width("rounded=0;", "x")  # 非数兜底 1
+
+
 # ── 加粗（fontStyle 按位或 1）─────────────────────────────
 def test_bold_appends_when_fontStyle_absent() -> None:
     assert apply_bold("rounded=0;whiteSpace=wrap;") == "rounded=0;whiteSpace=wrap;fontStyle=1;"
@@ -118,6 +134,7 @@ def test_colorize_stroke_and_bold_keeps_fill_untouched(cfg, model, renderer, sam
     assert result.node_states["C001"] == F
     c001 = patches[model.code_map["C001"]]
     assert "strokeColor=#FF0000" in c001 and "fontStyle=1" in c001
+    assert "strokeWidth=3" in c001                             # 边线加粗到 3
     assert "fillColor=#FFCCFF" in c001
     # C013=TRUE→绿边；R06 不施样式
     assert "strokeColor=#00B050" in patches[model.code_map["C013"]]
@@ -135,9 +152,9 @@ def test_unknown_stroke_yellow_not_polluting_fill(cfg, model, renderer) -> None:
 
 
 def test_unknown_omitted_when_spec_blank(cfg, model, sample) -> None:  # noqa: ANN001
-    empty = Renderer({"result_style": {"channel": "stroke", "TRUE": {}}})
+    empty = Renderer({"result_style": {"channel": "stroke", "stroke_width": 1, "TRUE": {}}})
     result = eval_states(cfg, model, sample)
-    assert empty.colorize(model, result) == {}                       # 无色无粗 → 幂等零补丁
+    assert empty.colorize(model, result) == {}                       # 无色无粗宽度=1 → 幂等零补丁
 
 
 # ── fill 通道向后兼容（显式旧配置仍可用）─────────────────

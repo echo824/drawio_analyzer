@@ -81,6 +81,29 @@ def apply_bold(style: str) -> str:
     return ";".join(out) + ";"
 
 
+def _style_get(style: str, key: str) -> str | None:
+    """读 style 串中某键的原始值（不存在返回 None），仅用于幂等判定。"""
+    for part in style.split(";"):
+        k, _, v = part.partition("=")
+        if k.strip() == key:
+            return v.strip()
+    return None
+
+
+def apply_stroke_width(style: str, width: int) -> str:
+    """设置 strokeWidth（边线粗细，draw.io 缺省 1）；非整数/<1 兜底 1，同值不改写（幂等）。
+
+    模板节点普遍不书写 strokeWidth（走默认细线），故补上该键即可产生可见变化。"""
+    try:
+        w = int(width)
+    except (TypeError, ValueError):
+        w = 1
+    w = max(1, w)
+    if _style_get(style, "strokeWidth") == str(w):
+        return style
+    return _set_style_key(style, "strokeWidth", str(w))
+
+
 # ── §6.6 改版：阈值占位符 → 具体数值（2026-10 右值全面阈值化）────────
 # 左边界拦字母/数字/下划线（防 "ax1"、防符号名后半段误命中）；右边界仅拦数字/下划线：
 # 既防 "x1" 误伤 "x13"/"x10" 与 "x_p005_region"，又允许单位字母紧随（"x4m"→"5m"）、
@@ -206,6 +229,11 @@ class Renderer:
         result_style = self.style.get("result_style", {}) or {}
         self.result_style = result_style
         self.channel = result_style.get("channel", "fill")
+        # stroke 通道边线粗细（2026-10-08 强化）：缺省 3（draw.io 默认 1），<=1 则不写该键
+        try:
+            self.stroke_width = int(result_style.get("stroke_width", 3))
+        except (TypeError, ValueError):
+            self.stroke_width = 3
         raw_kinds = result_style.get("color_kinds")
         # 为空/缺失 → 染所有已求值节点（向后兼容）；否则仅指定种类（如 [P, C]）
         self.color_kinds: set[str] | None = (
@@ -246,8 +274,8 @@ class Renderer:
     def colorize(self, model: TemplateModel, result: EvaluationResult) -> dict[str, str]:
         """仅对"有结果样式且有求值态"且属于 color_kinds 的业务节点产出补丁；其余透传。
 
-        channel=fill（旧）：替换 fillColor；channel=stroke（2026-10-08）：换 strokeColor+加粗，
-        背景色不动（模板底色自有含义）。两通道均只改内存/输出串，幂等可重复渲染。"""
+        channel=fill（旧）：替换 fillColor；channel=stroke（2026-10-08）：换 strokeColor+加粗+
+        可选加粗边线（strokeWidth），背景色不动（模板底色自有含义）。两通道均只改内存/输出串，幂等可重复渲染。"""
         style_by_cell = {n.cell_id: n.style for n in model.nodes}
         kind_by_code = {n.code: n.kind for n in model.nodes if n.code is not None}
         patches: dict[str, str] = {}
@@ -270,6 +298,8 @@ class Renderer:
                     new_style = apply_stroke_color(new_style, color)
                 if spec.get("bold"):
                     new_style = apply_bold(new_style)
+                if self.stroke_width > 1:            # 边线加粗（>1 才写，=1 走默认不污染）
+                    new_style = apply_stroke_width(new_style, self.stroke_width)
                 if new_style != original:            # 幂等：无变化不入补丁
                     patches[cell_id] = new_style
             else:
