@@ -104,7 +104,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 {
   "template_id": "oil_fracturing_v1",
   "well_id": "W001",
-  "rules_version": "2026.05",
+  "rules_version": "2026.06",
   "root_state": "FALSE",                 // 最终结论（根节点 C001）
   "node_states": { "P001": "TRUE", "P003": "FALSE", "R06": "TRUE", "C001": "FALSE", "...": "..." },
   "colors":      { "P001": "#00B050", "C001": "#FF0000", "...": "..." },  // 仅 P/C 着色，R 不列入
@@ -134,7 +134,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
   "well_id": "W001",                 // 可选
   "node_values": {                   // 必填（字段必须提供，可空对象）
     "P001": [5, 12.3],        // 数组按操作数顺序位置映射：[reservoir_layers, converted_thickness]
-    "P016": [110, false],     // [casing_inner_diameter, casing_damage]，布尔按位置给出
+    "P016": false,            // 单布尔判据（casing_damage == false），直接给标量
     "P006": 20,               // 单操作数节点直接给标量
     "...": {}
   },
@@ -153,6 +153,35 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 
 > 除 `template` 与 `node_values` 外均为可选；`node_values` **字段必须提供**（可传空对象 `{}` → 全节点 `UNKNOWN`，仍正常返 200），但字段内缺省的具体量 → 对应判据 `UNKNOWN`（不报错）。数值为 `int/float`；布尔用 `true/false`；类型/单位/范围由 `parameters.yaml` 定义、`InputValidator` 校验，非法值被丢弃并记入 `validation.issues`。~~`basis`~~ 已随 R2 改版退役（右值全面阈值化，服务不感知聚合口径）。
 
+### 最小请求样例（对接方）
+
+> 只需 `template` + `node_values` 两个字段即可调通；`well_id`/`thresholds` 等按需附加。下例面向 Docker 部署（`:8000`）；本地 `python app.py` 则为 `:5000`。
+
+**① 最简形式**（仅传必填字段；`node_values: {}` 求值全降级为 `UNKNOWN`、返 200）：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"template":"oil_fracturing_v1","node_values":{}}'
+```
+
+**② 典型最小体**（传几个关键 P 码；多操作数节点用数组按位序、单操作数直接给标量）：
+
+```jsonc
+{
+  "template": "oil_fracturing_v1",   // 必填：模板 ID
+  "well_id": "W001",                 // 可选：仅用于标题/追溯
+  "node_values": {                   // 必填：按 P 业务码传值
+    "P001": [5, 12.3],   // 可压层数·折算厚度（多操作数→数组，位序见下表）
+    "P006": 20,          // 日产油之差（单操作数→标量）
+    "P012": 700,         // 动液面（m）
+    "P016": false        // 套管严损与否（布尔标量）
+  }
+}
+```
+
+> 未传入的 P 码对应判据记 `UNKNOWN`（不报错）；如需锁定结论可额外带 `thresholds` 覆盖阈值占位（缺省用 `parameters.yaml` 默认值）。响应：默认 `text/html`（带图回显），加 `?result=json` 或 `Accept: application/json` 取结构化三态。
+
 ### `node_values` —— P 节点判据（操作数名 → 值）
 
 | P 码 | 判据含义 | 操作数（传值键，单位） | 比较 | 右值：阈值符号 | 节点内合并 |
@@ -170,7 +199,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | `P012` | 动液面大于区块均值（1005 新增） | `inflow_performance`(m) | `>` | `x_p012_block` | AND |
 | `P013` | 连通开井数 | `connected_open_wells`(口,int) | `>` | `x20` | AND |
 | `P015` | 配注完成率 | `injection_completion_rate`(%) | `>` | `x22` | AND |
-| `P016` | 套管通径 且 无严重损坏 | `casing_inner_diameter`(mm) · `casing_damage`(bool) | `>` / `==` | `casing_min` / 字面量 `false` | AND |
+| `P016` | 套管无严重损坏（2026-10 简化为单布尔） | `casing_damage`(bool) | `==` | 字面量 `false` | AND |
 
 > 右值全部为阈值符号（定义于 `parameters.yaml`，请求 `thresholds` 可覆盖）；后缀 `region`/`net`/`block` = 全区/井网/区块口径由**外部算好后塌缩的单值**，服务不感知、不统计。布尔字面量比较（P016）不参与阈值替换。完整语义见 `rules.yaml` 各 P 节点 `operands`。
 
@@ -181,8 +210,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | P 码 | 位置含义 → 传值示例 |
 |---|---|
 | `P001` | `[reservoir_layers, converted_thickness]` → `[5, 12.3]` |
-| `P016` | `[casing_inner_diameter, casing_damage]` → `[110, false]` |
-| 其余全部 P 码 | 单操作数节点直接给标量，如 `"P012": 700`、`"P011": 10` |
+| 其余全部 P 码 | 单操作数节点直接给标量，如 `"P012": 700`、`"P011": 10`、`"P016": false`（布尔） |
 
 > 数组偏短 → 尾部记 `missing`；偏长 → 记 `type` 并忽略多余位；亦接受 `{"P001": {"reservoir_layers": 5, "converted_thickness": 12.3}}` 的按名映射（向后兼容）。多分支比较（P005/P007/P008/P009 的 OR）共用同一个实测值，无需重传。
 
@@ -195,7 +223,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 | `x4` | 5 | m | 折算厚度 | `x13` | 70 | % | 含水率 |
 | `x6` | 10 | t | 日产液 | `x20` | 2 | 口 | 连通开井数 |
 | `x8` | 2 | t/d.m | 产液强度 | `x22` | 80 | % | 配注完成率 |
-| `casing_min` | 105 | mm | 套管通径下限 | `x_p003` | 9 | t | P003 邻井均值×系数（已塌缩） |
+| `casing_min` | 105 | mm | （P016 旧通径阈值，2026-10 已降为解释文字、不再被引用） | `x_p003` | 9 | t | P003 邻井均值×系数（已塌缩） |
 | `x_p005_region` | 47 | % | P005 全区基准 | `x_p005_net` | 45 | % | P005 井网基准 |
 | `x_p007_region` | 1.6 | t/d.m | P007 全区基准 | `x_p007_net` | 1.5 | t/d.m | P007 井网基准 |
 | `x_p008_region` | 12.5 | t | P008 全区基准 | `x_p008_net` | 12 | t | P008 井网基准 |
