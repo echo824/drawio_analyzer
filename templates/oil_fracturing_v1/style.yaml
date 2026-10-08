@@ -1,6 +1,8 @@
 # style.yaml — 结果样式与阈值占位符替换格式
 # 权威依据：需求补充（基于真实模板）.md §4
-# 决策：结果用 fillColor 表达(绿/红/黄)，类型不再依赖颜色、由业务码前缀识别；原始 .drawio 只读。
+# 决策：【2026-10-08 通道调整】结果改用**边线色+加粗**表达（channel: stroke）——节点背景色
+#   保留模板原含义、不再承载三态；旧 fill（底色绿/红/黄）仍被渲染器支持向后兼容。
+#   类型不依赖颜色、由业务码前缀识别；原始 .drawio 只读。
 # 【E 处置】以下均为当前确认策略，保留不变：色值 E1、UNKNOWN 占位 E3(默认不显示)、
 #   角标开关 E4(默认关闭)；【2026-10 恢复】实测值回写标注（§4.6 value_annotation）与
 #   阈值占位符替换（§6.6 threshold_substitution）共存：先把符号换成阈值数值，再把传入的
@@ -10,14 +12,15 @@ meta:
   template: oil_fracturing_v1
   version: 1.0.0
 
-# ── 1) 结果配色（仅替换 fillColor，其余 style 键原样保留）──
+# ── 1) 结果样式（stroke 通道：仅换 strokeColor 并加粗 fontStyle，fillColor 原样保留）──
 # 注：TRUE/FALSE/UNKNOWN 必须加引号，否则 PyYAML 会把裸 TRUE/FALSE 解析为布尔键。
+# 色值沿用旧三态（绿/红/黄），仅施加通道变更；UNKNOWN 占位 E3 默认不显示约束不变。
 result_style:
-  channel: fill
-  color_kinds: [P, C]                # 仅对 P(输入)/C(结论)施加结果色；R(关系/中间规则)保持模板原样
-  "TRUE":    { fillColor: "#00B050" }     # 成立=绿
-  "FALSE":   { fillColor: "#FF0000" }     # 不成立=红
-  "UNKNOWN": { fillColor: "#FFFF00" }     # 条件缺失=饱和黄(区别模板淡黄 P)
+  channel: stroke
+  color_kinds: [P, C]                # 仅对 P(输入)/C(结论)施加结果样式；R(关系/中间规则)保持模板原样
+  "TRUE":    { strokeColor: "#00B050", bold: true }   # 成立=绿边加粗
+  "FALSE":   { strokeColor: "#FF0000", bold: true }   # 不成立=红边加粗
+  "UNKNOWN": { strokeColor: "#FFFF00", bold: true }   # 条件缺失=黄边加粗
 
 # ── 2) 模板原始底色（仅供"未求值节点透传"参考，运行时不覆盖、不参与类型识别）──
 template_default_fill:

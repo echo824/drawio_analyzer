@@ -220,9 +220,9 @@ curl -X POST "http://127.0.0.1:5000/api/v1/evaluate?result=json" \
 ## 求值语义与结果配色
 
 - **节点种类**：`P`=输入/谓词 · `R`=关系/中间规则 · `C`=结论（根节点为 `C001`，代表最终评价）。
-- **三态**：`TRUE` 绿 `#00B050` · `FALSE` 红 `#FF0000` · `UNKNOWN` 黄 `#FFFF00`。
-- **着色范围**：结果色**仅施加于 `P`/`C` 节点**；关系节点 `R` 保持模板原样不着色。该行为由 `style.yaml: result_style.color_kinds: [P, C]` 配置驱动（改回 `[P, R, C]` 或留空即恢复全着色，无需改代码）。
-- **参数值回写**：在 `P` 节点标签的比较运算符后追加全角 `（值）`；布尔回写 `（是）/（否）`；`UNKNOWN` 不插入；幂等（同值不重复）。
+- **三态结果样式**（2026-10-08 通道调整）：`TRUE` 绿 `#00B050` · `FALSE` 红 `#FF0000` · `UNKNOWN` 黄 `#FFFF00`——**以“边线变色 + 加粗”表达**（`style.yaml: result_style.channel: stroke`）；节点背景色保留模板原业务含义，不再承载结果。旧 `fill` 通道（换底色）仍被渲染器支持，向后兼容。
+- **样式施加范围**：结果样式**仅施加于 `P`/`C` 节点**；关系节点 `R` 保持模板原样。该行为由 `style.yaml: result_style.color_kinds: [P, C]` 配置驱动（改回 `[P, R, C]` 或留空即全覆盖，无需改代码）。
+- **参数值回写**：把传入的实测值以全角 `（值）` 插到 `P` 节点标签比较运算符**之前**（如 `P009 本井日产油（2） < 3 t`）；布尔回写 `（是）/（否）`；`UNKNOWN` 不插入；幂等（同值不重复）。
 - **不改版式**：输出 HTML 保持原图位置、尺寸、文字、连线、箭头与未涉及样式。
 
 ---
@@ -276,7 +276,7 @@ done
 
 只改配置、重启服务即可看到输出变化（`tests/golden/test_config_decoupling.py` 同口径验证）：
 
-- **改结果色**：`style.yaml → result_style.TRUE.fillColor`（如 `#123456`）→ P/C 的 TRUE 节点变色，三态不变。
+- **改结果色**：`style.yaml → result_style.TRUE.strokeColor`（如 `#123456`）→ P/C 的 TRUE 节点边线变色，三态与背景色不变。
 - **改着色范围**：`style.yaml → result_style.color_kinds` 由 `[P, C]` 改 `[P, R, C]` → 关系节点 R 也开始着色。
 - **改判据算子**：`rules.yaml → P006.operands[0].op` 由 `>` 改 `<` → `P006` 结果翻转，并沿 `R11 → C019 → …` 向上传播。
 - **改阈值**：`parameters.yaml → thresholds.x12.value` 由 `10` 改 `1`（或请求 `thresholds.x12=1`）→ 相关节点成立性变化。
@@ -295,7 +295,7 @@ done
 | `flow.drawio` | 流程图模板（**只读源**，明文 `mxGraphModel`） |
 | `rules.yaml` | 声明式规则：P 节点算子/操作数，R/C 聚合算子（`AND`/`OR`）与子节点，根结论 |
 | `parameters.yaml` | 参数语义字典（量/单位/范围）与阈值占位默认值 |
-| `style.yaml` | 结果色（三态 → `fillColor`）、`color_kinds`、值回写样式、HTML 输出参数 |
+| `style.yaml` | 结果样式（三态 → `strokeColor` + 加粗，`channel` 可在 stroke/fill 切换）、`color_kinds`、值回写样式、HTML 输出参数 |
 
 **新增一个模板**：复制 `templates/oil_fracturing_v1/` 目录、改 5 份配置与 `flow.drawio` 即可被 `TemplateManager` 自动发现加载，无需改动服务代码。
 

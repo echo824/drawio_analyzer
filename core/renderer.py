@@ -1,8 +1,10 @@
-"""渲染回写（需求 §6）。ISSUE-1.6 落地结果着色（fillColor）；§6.6 改版见 1.7，HTML 组装见 1.8。
+"""渲染回写（需求 §6）。ISSUE-1.6 落地结果着色；§6.6 改版见 1.7，HTML 组装见 1.8。
 
 ISSUE-1.6 职责（§6.1–6.3）：
-  - 仅替换"参与求值节点"的 fillColor（绿/红/黄，取自 style.yaml result_style 字符串键）；
-  - 其余 style 键（strokeColor/shape/html/fontSize/aspect…）与顺序原样保留；
+  - 仅对"参与求值节点"施加结果样式，按 style.yaml result_style.channel 分发（2026-10-08 双通道）：
+      fill（旧、默认、向后兼容）：替换 fillColor 为绿/红/黄；
+      stroke（现行 v1）：换 strokeColor + fontStyle 加粗，**背景色不动**（模板底色自有业务含义）；
+  - 其余 style 键（shape/html/fontSize/aspect…）与顺序原样保留；
   - 未求值节点 / 连线 / UNCLASSIFIED 一律透传（不进补丁）；
   - 全程只作用于内存模型或输出串，绝不改动原始 .drawio。
 
@@ -31,20 +33,51 @@ from .models import EvaluationResult, TemplateModel, TriState
 VIEWER_SRC = "https://viewer.diagrams.net/js/viewer-static.min.js"
 
 
-def apply_fill_color(style: str, fill: str) -> str:
-    """§6.3 样式合并：按 ';' 切分，仅设置 fillColor，保留其它键及其顺序；缺失则追加。"""
+def _set_style_key(style: str, key: str, value: str) -> str:
+    """§6.3 样式合并：按 ';' 切分，仅设置指定键，保留其它键及其顺序；缺失则追加。"""
     parts = [p for p in style.split(";") if p != ""]
     out: list[str] = []
     replaced = False
     for part in parts:
-        key = part.partition("=")[0].strip()
-        if key == "fillColor":
-            out.append(f"fillColor={fill}")
+        k = part.partition("=")[0].strip()
+        if k == key:
+            out.append(f"{key}={value}")
             replaced = True
         else:
             out.append(part)
     if not replaced:
-        out.append(f"fillColor={fill}")
+        out.append(f"{key}={value}")
+    return ";".join(out) + ";"
+
+
+def apply_fill_color(style: str, fill: str) -> str:
+    """旧 fill 通道：仅替换 fillColor（保留向后兼容）。"""
+    return _set_style_key(style, "fillColor", fill)
+
+
+def apply_stroke_color(style: str, color: str) -> str:
+    """2026-10-08 stroke 通道：仅替换 strokeColor（边线色），背景色保留模板原语义。"""
+    return _set_style_key(style, "strokeColor", color)
+
+
+def apply_bold(style: str) -> str:
+    """fontStyle 按位或 1（加粗）且保留其余位（斜体/下划线）；键缺失则置 1；幂等。"""
+    parts = [p for p in style.split(";") if p != ""]
+    out: list[str] = []
+    replaced = False
+    for part in parts:
+        k, _, v = part.partition("=")
+        if k.strip() == "fontStyle":
+            try:
+                bits = int(v or 0)
+            except ValueError:
+                bits = 0
+            out.append(f"fontStyle={bits | 1}")
+            replaced = True
+        else:
+            out.append(part)
+    if not replaced:
+        out.append("fontStyle=1")
     return ";".join(out) + ";"
 
 
@@ -188,9 +221,22 @@ class Renderer:
         self.value_annotation = self.style.get("value_annotation", {}) or {}
 
     # ── 状态 → 结果色 ───────────────────────────────────
+    def spec_for(self, state: TriState) -> dict | None:
+        """result_style 中该状态的定义块（键为字符串 "TRUE"…）。"""
+        spec = self.result_style.get(state.value)
+        return spec if isinstance(spec, dict) else None
+
     def fill_for(self, state: TriState) -> str | None:
-        spec = self.result_style.get(state.value)   # result_style 键为字符串 "TRUE"…
-        return spec.get("fillColor") if isinstance(spec, dict) else None
+        """旧 fill 通道取色（保留向后兼容）。"""
+        spec = self.spec_for(state)
+        return spec.get("fillColor") if spec else None
+
+    def result_color(self, state: TriState) -> str | None:
+        """按通道取“结果色”：stroke → strokeColor；fill → fillColor。供摘要/快照。"""
+        spec = self.spec_for(state)
+        if spec is None:
+            return None
+        return spec.get("strokeColor" if self.channel == "stroke" else "fillColor")
 
     def _colors_kind(self, kind: str | None) -> bool:
         """该节点种类是否施加结果色（color_kinds 为空则全施加）。"""
@@ -198,7 +244,10 @@ class Renderer:
 
     # ── 生成 style 补丁（cell_id → 新 style）────────────
     def colorize(self, model: TemplateModel, result: EvaluationResult) -> dict[str, str]:
-        """仅对"有结果色且有求值态"且属于 color_kinds 的业务节点产出补丁；其余透传。"""
+        """仅对"有结果样式且有求值态"且属于 color_kinds 的业务节点产出补丁；其余透传。
+
+        channel=fill（旧）：替换 fillColor；channel=stroke（2026-10-08）：换 strokeColor+加粗，
+        背景色不动（模板底色自有含义）。两通道均只改内存/输出串，幂等可重复渲染。"""
         style_by_cell = {n.cell_id: n.style for n in model.nodes}
         kind_by_code = {n.code: n.kind for n in model.nodes if n.code is not None}
         patches: dict[str, str] = {}
@@ -208,11 +257,26 @@ class Renderer:
             state = result.node_states.get(code)
             if state is None:
                 continue
-            fill = self.fill_for(state)
             original = style_by_cell.get(cell_id)
-            if fill is None or original is None:
+            if original is None:
                 continue
-            patches[cell_id] = apply_fill_color(original, fill)
+            if self.channel == "stroke":
+                spec = self.spec_for(state)
+                if spec is None:
+                    continue
+                new_style = original
+                color = spec.get("strokeColor")
+                if color:
+                    new_style = apply_stroke_color(new_style, color)
+                if spec.get("bold"):
+                    new_style = apply_bold(new_style)
+                if new_style != original:            # 幂等：无变化不入补丁
+                    patches[cell_id] = new_style
+            else:
+                fill = self.fill_for(state)
+                if fill is None:
+                    continue
+                patches[cell_id] = apply_fill_color(original, fill)
         return patches
 
     # ── 把补丁写入内存 XML 树（供 1.8 序列化）────────────
@@ -386,7 +450,7 @@ class Renderer:
         for code, state in result.node_states.items():
             node_states[code] = state.value
             if self._colors_kind(kind_by_code.get(code)):
-                colors[code] = self.fill_for(state)
+                colors[code] = self.result_color(state)
         return {
             "template_id": result.template_id,
             "well_id": result.well_id,

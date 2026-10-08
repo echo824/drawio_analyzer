@@ -178,7 +178,8 @@ def test_substitute_and_colorize_independent(cfg, sym_model, renderer) -> None: 
     style_patches = renderer.colorize(sym_model, result)
     value_patches = renderer.substitute(sym_model, {"x12": 10})
     cid = sym_model.code_map["P006"]
-    assert "fillColor=#FF0000" in style_patches[cid]        # FALSE → 红
+    assert "strokeColor=#FF0000" in style_patches[cid]      # FALSE → 红边加粗（stroke 通道）
+    assert "fillColor=#FFFFFF" in style_patches[cid]        # 模板底色不受结果样式影响
     assert "&gt; 10 t" in value_patches[cid]                # 阈值符号 → 数值
 
 

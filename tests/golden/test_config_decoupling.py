@@ -37,7 +37,7 @@ def test_style_color_drives_output(tmp_path: Path, templates_root: Path) -> None
     assert true_nodes and false_nodes
 
     def edit(style: dict) -> None:
-        style["result_style"]["TRUE"]["fillColor"] = "#123456"
+        style["result_style"]["TRUE"]["strokeColor"] = "#123456"     # stroke 通道：结果色=边线色
 
     snap = snapshot_for(_mutated_root(templates_root, tmp_path, {"style.yaml": edit}), TEMPLATE_ID)
     assert all(snap["colors"][c] == "#123456" for c in true_nodes)     # TRUE 色随 style
